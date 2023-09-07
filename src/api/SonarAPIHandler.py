@@ -8,11 +8,6 @@ class SonarAPIHandler(object):
     """
     Adapter for SonarQube's web service API.
     """
-    # Default host is local
-    # DEFAULT_HOST = 'https://softwarequality-cfmpro-tc.shared-nonprod.cloud.si.orange.es'
-    # DEFAULT_HOST_TC =   'https://softwarequality-tc.shared-nonprod.cloud.si.orange.es'
-    # DEFAULT_HOST_NEW = 'https://softwarequality-tc.shared-nonprod.cloud.si.orange.es/projects'
-    # DEFAULT_BASE_PATH = '/projects'
     DEFAULT_BASE_PATH = ''
 
     # Endpoint for resources and rules
