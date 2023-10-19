@@ -16,7 +16,6 @@ from utils.utils import load_to_csv, extract_from_csv
     Load :  volcamos los datos en los correspondientes ficheros 'csv'
 
 '''
-
 def main():
 
     print("Lanzando etl gitlab")
@@ -36,6 +35,7 @@ def main():
             time.time() - start_time))
     else:
         start_time = time.time()
+        # extraemos los proyectos de Gitlab
         df_extract = extract_proyectos()
         df_extract = df_extract.sort_values('namespace')
         logging.info("Filtramos los proyectos no necesarios.")

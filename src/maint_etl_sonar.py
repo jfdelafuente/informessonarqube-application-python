@@ -1,8 +1,7 @@
 from etl.sonar.extract import extract_proyectos, extract_measure, extract_historico_columnas, extract_analisis
-from etl.sonar.transform import eliminar_error_namespaces, transformar_java, transformar_date
-from utils.utils import load_to_csv, extract_from_csv
+from etl.sonar.transform import eliminar_error_namespaces
+from utils.utils import load_to_csv
 import configSonar
-import os
 import logging
 import time
 

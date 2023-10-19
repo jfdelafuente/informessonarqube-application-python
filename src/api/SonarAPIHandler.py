@@ -30,7 +30,7 @@ class SonarAPIHandler(object):
         self._host = host or os.environ['SONAR_DEFAULT_HOST']
         self._base_path = base_path or self.DEFAULT_BASE_PATH
         self.token = os.environ['SONAR_ACCESS_TOKEN']
-        # print("Conectando con : %s" % self._host)
+        print("Conectando con : %s" % self._host)
 
     def _get_url(self, endpoint):
         """
@@ -75,7 +75,8 @@ class SonarAPIHandler(object):
             'p': index,
             'ps' : '200'
         }
-        #logging.debug(query_args)
+        # logging.debug(query_args)
+        # print(query_args)
         datos = self._make_call(self.COMPONENTS_SEARCH_ENDPOINT, **query_args)
         return datos
     

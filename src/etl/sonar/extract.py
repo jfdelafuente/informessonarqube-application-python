@@ -21,6 +21,7 @@ def extract_proyectos():
     while index*pageSize < total+pageSize:
         project = sonar.get_component(qualifiers="TRK", index=index)
         if project.status_code == 200:
+            # print("Conexion OK. Obtenemos componentes de Sonar")
             datos_json = json.loads(project.text)
             index = index + 1
             total = datos_json["paging"]["total"]
