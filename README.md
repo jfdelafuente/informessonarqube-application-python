@@ -45,8 +45,7 @@ pip install -r requirements.txt
     - DIR_GITLAB_LOGS = DIR_GITLAB + 'logs/'
     - DIR_GITLAB_XLSX = DIR_GITLAB + 'xlsx/GITLAB/'
 
-  [!IMPORTANT]
-  1.2 Creamos los directoriso "logs/" y "xlsx/GITLAB/"
+  [!IMPORTANT] 1.2 Creamos los directoriso "logs/" y "xlsx/GITLAB/"
   
   1.3 Ejecutaremos el ejecutable **'./main_etl_gitlab.py'**.
 
