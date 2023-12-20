@@ -23,6 +23,31 @@ def esJava(name):
     return es_java
 
 '''
+    Funcion que extrae todos los proyectos  y devuelve un DataFrame con 
+    los siguientes valores: 'ID', 'NAME','ID_NAMESPACE','NAMESPACE' y 'WEB_URL'
+'''
+        
+def extract_todos_proyectos():
+    gl = gitlab.Gitlab(url=os.environ["GITLAB_DEFAULT_HOST"], private_token=os.environ['GITLAB_ACCESS_TOKEN'])
+    project_ids = [] 
+    i = 0
+    projects = gl.projects.list(iterator=True)
+    for project in projects:
+        i = i + 1
+        # print("Cargando ... %s" % project.attributes["name"])
+        project_ids.append((project.id, 
+                                project.name,
+                                project.attributes["namespace"]["id"],
+                                project.attributes["namespace"]["name"],
+                                project.attributes["namespace"]["web_url"]
+                                ))
+        
+    df_project = pd.DataFrame(project_ids, columns=["id", "name", "id_namespace", "namespace","web_url"]) 
+    print("Extraccion Proyectos: se han extraído %s proyectos" % i)
+    # print(df_project)
+    return df_project
+
+'''
     Funcion que extrae los proyectos 'JAVA' de Gitlab y devuelve un DataFrame con 
     los siguientes valores: 'ID', 'NAME','ID_NAMESPACE','NAMESPACE' y 'WEB_URL'
 '''

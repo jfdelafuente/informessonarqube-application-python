@@ -4,12 +4,16 @@ import pandas as pd
 from utils.utils import get_namespace, get_lenguaje
 from datetime import datetime
 
+
+columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
+            'code_smells', 'bugs', 'vulnerabilities', 'sqale_index', 'sqale_rating', 'reliability_rating',
+            'security_rating', 'alert_status', 'app_sonar']
+
+
 '''
     Función que realiza la extracción de componentes(repositorios) sobre el "host"
     de Sonar indicado y utilizando el API
 '''
-
-
 def extract_proyectos():
     # inicializamos Sonarqube
     sonar = sonarAPIHandler.SonarAPIHandler()
@@ -37,7 +41,6 @@ def extract_proyectos():
                     get_lenguaje(project["project"])
                     )
                 )
-            
 
     print(f"Extraccion Proyectos: se han tratado {contador} proyectos")
     df_project = pd.DataFrame(project_ids, columns=[
@@ -50,8 +53,6 @@ def extract_proyectos():
     Función que realiza la extracción del histórico de medidas de los projectos
     incluídos en el campo "project" del dataframe de entrada.
 '''
-
-
 def extract_historico(df_projects):
     # inicializamos Sonarqube
     sonar = sonarAPIHandler.SonarAPIHandler()
@@ -87,13 +88,7 @@ def extract_historico(df_projects):
     Función que realiza la extracción en columnas del histórico de medidas de los projectos
     incluídos en el campo "project" del dataframe de entrada.
 '''
-
-
 def extract_historico_columnas(df_projects):
-    columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
-               'code_smells', 'bugs', 'vulnerabilities', 'sqale_index',	'sqale_rating',	'reliability_rating',
-               'security_rating', 'alert_status', 'app_sonar']
-
     # inicializamos Sonarqube
     sonar = sonarAPIHandler.SonarAPIHandler()
     project_ids = []
@@ -138,13 +133,53 @@ def extract_historico_columnas(df_projects):
     # print(df_project)
     return df_project
 
+def extract_historico_columnas_from(df_projects, date_from):
+    # inicializamos Sonarqube
+    sonar = sonarAPIHandler.SonarAPIHandler()
+    project_ids = []
+    tratadas = 0
+    contador = 0
+    total = df_projects.shape[0]
+    print(f'Se van a tratar {total} filas')
+    for t, row in df_projects.iterrows():
+        # print(f'Tratando el proyecto {row["project"]}')
+        measures = sonar.get_measures_history_from(row["project"], date_from)
+        if measures.status_code == 200:
+            datos_json = json.loads(measures.text)
+            # print(json.dumps(datos_json, indent=4, sort_keys=True)) 
+            contador = contador + 1
+
+            total_history = len(datos_json["measures"][0]["history"])
+            total_measures = len(datos_json["measures"])
+            # print(f'El proyecto {row["project"]} tiene {total_history} historico.')
+            for i in range(total_history):
+                tratadas = tratadas + 1
+                # print(f'Tratando {i+1}/{total_history} del proyecto {row["project"]}')
+                dict_metrics = {}
+                dict_metrics["aplicacion"] = get_namespace(row["project"])
+                dict_metrics["proyecto"] = row["name"]
+                dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+                for j in range(total_measures):
+                    dict_metrics["date"] = datetime.fromisoformat(
+                        datos_json["measures"][j]["history"][i]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                    if len(datos_json["measures"][j]["history"][i]) > 1:
+                        value = datos_json["measures"][j]["history"][i]["value"]
+                        dict_metrics[datos_json["measures"][j]["metric"]] = value
+                    else:
+                        dict_metrics[datos_json["measures"][j]["metric"]] = "0"
+
+                dict_metrics["app_sonar"] = row["project"]
+                project_ids.append(dict_metrics)
+        else:
+            print(f"{measures.status_code}")
+
+    print(f"Extraccion Histórico: de {total} filas se han evaluado {contador} y tratados {tratadas} proyectos")
+    df_project = pd.DataFrame(project_ids, columns=columns)
+    # print(df_project)
+    return df_project
 
 def extract_measure(df_projects):
     # inicializamos Sonarqube
-    columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
-               'code_smells', 'bugs', 'vulnerabilities', 'sqale_index',	'sqale_rating',	'reliability_rating',
-               'security_rating', 'alert_status', 'app_sonar']
-
     sonar = sonarAPIHandler.SonarAPIHandler()
     project_ids = []
     no_tratado = 0
@@ -185,7 +220,6 @@ def extract_measure(df_projects):
 
 
 def extract_analisis(df_projects):
-
     sonar = sonarAPIHandler.SonarAPIHandler()
     project_ids = []
     tratados = 0

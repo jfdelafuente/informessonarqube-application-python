@@ -34,7 +34,6 @@ pip install -r requirements.txt
 
     - SONAR : Extraccion analisis: Se genera un fichero '{DIR_SONAR_XLSX}/sonar_salida_project_analisis_etl_tc.csv'
 
-
 ## Descripción GitLab
 
 ### 1. Realizaremos las consultas a GITLAB para obtener los resultados en distintos ficheros JSON.
@@ -62,5 +61,3 @@ pip install -r requirements.txt
     - GITLAB: Concatenamos TAGs Y COMMITs, eliminando duplicados y se genera un fichoro  '{DIR_GITLAB_XLSX}/gitlab_data.xlsx'
 
     - GITLAB: Extraccion pipeline: Se genera un fichero '{DIR_GITLAB_XLSX}/gitlab_salida_pipelines.csv'
-
-
