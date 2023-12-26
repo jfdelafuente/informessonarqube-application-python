@@ -1,7 +1,7 @@
 from etl.sonar.extract import extract_proyectos, extract_historico_columnas, extract_analisis, extract_historico_columnas_from, extract_measure
 from etl.sonar.transform import eliminar_error_namespaces
 from utils.utils import load_to_csv
-from utils.lastdate import save_current_date, leer_last_date
+from utils.lastdate import save_current_date, leer_last_date, nombre_fichero
 from datetime import datetime
 import configSonar
 import logging
@@ -30,8 +30,8 @@ def main():
     # Solo datos para el dashboard
     if not configSonar.ONLY_DASHBOARD:
         load_to_csv(configSonar.DIR_SONAR_XLSX +
-                "sonar_salida_projects_etl_tc.csv", df_project)
-        
+            "sonar_salida_projects_etl_tc.csv", df_project)
+    
     logging.info("EXTRACCION proyectos duration: {} seconds".format(
         time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
@@ -52,8 +52,9 @@ def main():
     start_time = time.time()
     df_measures = extract_measure(df_project)
     # df_measures = transformar_date(df_measures)
+    file_measure = "sonar_salida_measure_etl_tc.csv"
     load_to_csv(configSonar.DIR_SONAR_XLSX +
-                "sonar_salida_measure_etl_tc.csv", df_measures)
+        file_measure, df_measures)
     logging.info("EXTRACCION Métricas duration: {} seconds".format(
         time.time() - start_time))
     print("SONAR : Fin carga Métricas")
@@ -73,12 +74,12 @@ def main():
         df_historico = extract_historico_columnas_from(df_project, yesterdayD)
     # df_historico = transformar_date(df_historico)
     load_to_csv(configSonar.DIR_SONAR_XLSX +
-                "sonar_salida_historico_etl_tc.csv", df_historico)
+        nombre_fichero("historico", last_date), df_historico)
     logging.info("EXTRACCION Histórico duration: {} seconds".format(
         time.time() - start_time))
     print("SONAR : Fin carga Historico")
-    
-    
+
+
     # Extraemos loa análisis realizados por sonar
     # No es necesaria esta extracción para el Dashboard
     if not configSonar.ONLY_DASHBOARD:
@@ -87,14 +88,14 @@ def main():
         df_analisis = extract_analisis(df_project)
         # df_analisis = transformar_date(df_analisis)
         load_to_csv(configSonar.DIR_SONAR_XLSX +
-                "sonar_salida_project_analisis_etl_tc.csv", df_analisis)
+            "sonar_salida_project_analisis_etl_tc.csv", df_analisis)
         logging.info("EXTRACCION Anális duration: {} seconds".format(
             time.time() - start_time))
         print("SONAR : Fin carga Analisis")
 
     # finalizamos
     logging.info("")
-    save_current_date(configSonar.DIR_SONAR + 'last_date.txt')
+    # save_current_date(configSonar.DIR_SONAR + 'last_date.txt')
     logging.info("TOTAL duration: {} seconds".format(
         time.time() - start_time_total))
 
