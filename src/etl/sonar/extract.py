@@ -43,7 +43,8 @@ def extract_proyectos():
                 )
 
     print(f"Extraccion Proyectos: se han tratado {contador} proyectos")
-    df_project = pd.DataFrame(project_ids, columns=[
+    df_project = pd.DataFrame(project_ids, 
+                              columns=[
                               "project", "namespace", "name", "lenguaje"])
     # print(df_project)
     return df_project
@@ -200,6 +201,8 @@ def extract_measure(df_projects):
             total_measures = len(datos_json["measures"])
             for i in range(total_measures):
                 ultimo = len(datos_json["measures"][i]["history"]) - 1
+                print(datetime.fromisoformat(
+                    datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S"))
                 dict_metrics["date"] = datetime.fromisoformat(
                     datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
                 try:

@@ -23,11 +23,11 @@ def main():
     origen, compania, app, aplication, lenguaje = component_project.split(sep='.')
     print(project_name)
 
-    # today = datetime.datetime.now()
-    # yesterday = today - datetime.timedelta(days=1)
-    # yesterdayD = yesterday.strftime("%Y-%m-%dT%H:%M:%S+0200")
-    d = datetime.datetime.strptime(leer_last_date(), "%Y-%m-%d %H:%M:%S")
-    yesterdayD = d.strftime("%Y-%m-%dT%H:%M:%S+0200")
+    today = datetime.datetime.now()
+    yesterday = today - datetime.timedelta(days=1)
+    yesterdayD = yesterday.strftime("%Y-%m-%dT%H:%M:%S+0200")
+    # d = datetime.datetime.strptime(leer_last_date(), "%Y-%m-%d %H:%M:%S")
+    # yesterdayD = d.strftime("%Y-%m-%dT%H:%M:%S+0200")
     print("{time}".format(time=yesterdayD))
     
     

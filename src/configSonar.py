@@ -1,5 +1,5 @@
 APLICACIONES_EXCLUIDAS = ['tdccicdosp','viveorange','altamenaosp' ]
-ONLY_DASHBOARD = True
+ONLY_DASHBOARD = False
 
 DIR_SONAR = './'
 DIR_SONAR_LOGS = DIR_SONAR + 'logs/'

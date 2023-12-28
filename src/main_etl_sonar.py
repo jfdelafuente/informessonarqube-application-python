@@ -27,15 +27,15 @@ def main():
     print("SONAR: Extraccion de proyectos ... ")
     start_time = time.time()
     df_project = extract_proyectos()
+    
     # Solo datos para el dashboard
-    if not configSonar.ONLY_DASHBOARD:
+    if configSonar.ONLY_DASHBOARD:
         load_to_csv(configSonar.DIR_SONAR_XLSX +
             "sonar_salida_projects_etl_tc.csv", df_project)
     
     logging.info("EXTRACCION proyectos duration: {} seconds".format(
         time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
-
 
 
     logging.info("SONAR : Eliminar errores")
@@ -82,7 +82,7 @@ def main():
 
     # Extraemos loa análisis realizados por sonar
     # No es necesaria esta extracción para el Dashboard
-    if not configSonar.ONLY_DASHBOARD:
+    if configSonar.ONLY_DASHBOARD:
         logging.info("SONAR: Inicio Extraccion analisis")
         start_time = time.time()
         df_analisis = extract_analisis(df_project)
@@ -92,6 +92,7 @@ def main():
         logging.info("EXTRACCION Anális duration: {} seconds".format(
             time.time() - start_time))
         print("SONAR : Fin carga Analisis")
+
 
     # finalizamos
     logging.info("")
