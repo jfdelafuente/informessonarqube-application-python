@@ -43,12 +43,9 @@ def extract_proyectos():
                 )
 
     print(f"Extraccion Proyectos: se han tratado {contador} proyectos")
-    df_project = pd.DataFrame(project_ids, 
-                              columns=[
-                              "project", "namespace", "name", "lenguaje"])
+    df_project = pd.DataFrame(project_ids, columns=["project", "namespace", "name", "lenguaje"])
     # print(df_project)
     return df_project
-
 
 '''
     Función que realiza la extracción del histórico de medidas de los projectos
@@ -80,10 +77,9 @@ def extract_historico(df_projects):
                 )
     print("Extraccion Históricos: se han tratado %s proyectos" % i)
     df_project = pd.DataFrame(project_ids, columns=[
-                              "aplicacion", "proyecto", "lenguaje", "metric", "date", "value"])
+                "aplicacion", "proyecto", "lenguaje", "metric", "date", "value"])
     # print(df_project)
     return df_project
-
 
 '''
     Función que realiza la extracción en columnas del histórico de medidas de los projectos
@@ -201,10 +197,7 @@ def extract_measure(df_projects):
             total_measures = len(datos_json["measures"])
             for i in range(total_measures):
                 ultimo = len(datos_json["measures"][i]["history"]) - 1
-                print(datetime.fromisoformat(
-                    datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S"))
-                dict_metrics["date"] = datetime.fromisoformat(
-                    datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
                 try:
                     dict_metrics[datos_json["measures"][i]["metric"]
                                 ] = datos_json["measures"][i]["history"][ultimo]["value"]
@@ -220,7 +213,6 @@ def extract_measure(df_projects):
     print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
     df_project = pd.DataFrame(project_ids, columns=columns)
     return df_project
-
 
 def extract_analisis(df_projects):
     sonar = sonarAPIHandler.SonarAPIHandler()
@@ -254,5 +246,48 @@ def extract_analisis(df_projects):
                     
     print(f"Extraccion Análisis: se han evaluado {contador} proyectos y {tratados} tratados")
     df_project = pd.DataFrame(project_ids, columns=[
-                              "aplicacion", "proyecto", "lenguaje", "date", "version"])
+                "aplicacion", "proyecto", "lenguaje", "date", "version"])
+    return df_project
+
+def extract_measure2(df_projects):
+    # inicializamos Sonarqube
+    sonar = sonarAPIHandler.SonarAPIHandler()
+    project_ids = []
+    no_tratado = 0
+    tratados = 0
+    print(f'Se van a tratar {df_projects.shape[0]} filas')
+    for index, row in df_projects.iterrows():
+        measures = sonar.get_measures_history(row["project"])
+        datos_json = json.loads(measures.text)
+        #print(json.dumps(datos_json, indent=4, sort_keys=True))
+        if datos_json["paging"]["total"] > 0:
+            tratados = tratados + 1
+            # print(row["project"])
+            dict_metrics = {}
+            dict_metrics["aplicacion"] = get_namespace(row["project"])
+            dict_metrics["proyecto"] = row["name"]
+            dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+
+            total_measures = len(datos_json["measures"])
+            for i in range(total_measures):
+                ultimo = len(datos_json["measures"][i]["history"]) - 1
+                print(datos_json["measures"][i]["history"][ultimo]["date"])
+                print(datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]))
+                print(datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S"))
+                
+                dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                try:
+                    dict_metrics[datos_json["measures"][i]["metric"]
+                                ] = datos_json["measures"][i]["history"][ultimo]["value"]
+                except Exception as err:
+                    # print(f"No encontrado {err=} en %s" % (err))
+                    dict_metrics[datos_json["measures"][i]["metric"]] = ""
+
+            dict_metrics["app_sonar"] = row["project"]
+            project_ids.append(dict_metrics)
+        else:
+            no_tratado = no_tratado + 1
+
+    print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
+    df_project = pd.DataFrame(project_ids, columns=columns)
     return df_project
