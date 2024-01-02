@@ -272,7 +272,7 @@ def extract_measure2(df_projects):
             for i in range(total_measures):
                 ultimo = len(datos_json["measures"][i]["history"]) - 1
                 print(datos_json["measures"][i]["history"][ultimo]["date"])
-                print(datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]))
+                print(datetime.strptime(datos_json["measures"][i]["history"][ultimo]["date"], "%Y-%m-%d %H:%M:%S"))
                 print(datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S"))
                 
                 dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
