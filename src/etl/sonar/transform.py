@@ -26,8 +26,7 @@ def transformar_java(df):
 
 def transformar_date(df):
     num_filas = df.shape[0]
-    df['date'] = pd.to_datetime(df['date'], 
-                                             format='%Y-%m-%d %H:%M:%S')
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
     # filtered_df = df.loc[(df['commit_created_at'] >= '2023-01-01') & (df['commit_created_at'] < '2023-09-15')]
     filtered_df = df.loc[(df['date'] >= '2023-01-01')]
     print(f'Se han eliminado {(num_filas - filtered_df.shape[0])} filas anteriores a 2023.')

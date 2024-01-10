@@ -7,7 +7,7 @@ from datetime import datetime
 
 columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
             'code_smells', 'bugs', 'vulnerabilities', 'sqale_index', 'sqale_rating', 'reliability_rating',
-            'security_rating', 'alert_status', 'app_sonar']
+            'security_rating', 'alert_status', 'app_sonar', 'quality_gate']
 
 
 '''
@@ -32,18 +32,22 @@ def extract_proyectos():
 
         for project in datos_json["components"]:
             contador = contador + 1
-            # print("Cargando ... %s" % project["name"])
+            print("Cargando ... %s" % project["project"])
+            quality_gate = sonar.get_qualitygate_by_project(project["project"])
+            quality_json = json.loads(quality_gate.text)
+            print(quality_json["qualityGate"]["name"])
             project_ids.append(
                     (
                     project["project"],
                     get_namespace(project["project"]),
                     project["name"],
-                    get_lenguaje(project["project"])
+                    get_lenguaje(project["project"]),
+                    quality_json["qualityGate"]["name"]
                     )
                 )
 
     print(f"Extraccion Proyectos: se han tratado {contador} proyectos")
-    df_project = pd.DataFrame(project_ids, columns=["project", "namespace", "name", "lenguaje"])
+    df_project = pd.DataFrame(project_ids, columns=["project", "namespace", "name", "lenguaje", "quality_gate"])
     # print(df_project)
     return df_project
 
@@ -121,6 +125,7 @@ def extract_historico_columnas(df_projects):
                         dict_metrics[datos_json["measures"][j]["metric"]] = "0"
 
                 dict_metrics["app_sonar"] = row["project"]
+                dict_metrics["quality_gate"] = row["quality_gate"]
                 project_ids.append(dict_metrics)
         else:
             print(f"{measures.status_code}")
@@ -166,6 +171,7 @@ def extract_historico_columnas_from(df_projects, date_from):
                         dict_metrics[datos_json["measures"][j]["metric"]] = "0"
 
                 dict_metrics["app_sonar"] = row["project"]
+                dict_metrics["quality_gate"] = row["quality_gate"]
                 project_ids.append(dict_metrics)
         else:
             print(f"{measures.status_code}")
@@ -206,6 +212,11 @@ def extract_measure(df_projects):
                     dict_metrics[datos_json["measures"][i]["metric"]] = ""
 
             dict_metrics["app_sonar"] = row["project"]
+            # quality_gate = sonar.get_qualitygate_by_project(row["project"])
+            # quality_json = json.loads(quality_gate.text)
+            # print(quality_json["qualityGate"]["name"])
+            # dict_metrics["quality_gate"] = quality_json["qualityGate"]["name"]
+            dict_metrics["quality_gate"] = row["quality_gate"]
             project_ids.append(dict_metrics)
         else:
             no_tratado = no_tratado + 1
@@ -249,7 +260,7 @@ def extract_analisis(df_projects):
                 "aplicacion", "proyecto", "lenguaje", "date", "version"])
     return df_project
 
-def extract_measure2(df_projects):
+
     # inicializamos Sonarqube
     sonar = sonarAPIHandler.SonarAPIHandler()
     project_ids = []

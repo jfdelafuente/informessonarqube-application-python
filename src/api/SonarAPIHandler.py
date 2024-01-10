@@ -18,6 +18,7 @@ class SonarAPIHandler(object):
     MEASURES_COMPONENT_ENDPOINT = '/api/measures/component'
     PROJECT_ANALYSES_ENDPOINT = '/api/project_analyses/search'
     PROJECT_SEARCH_ENDPOINT = '/api/projects/search'
+    QUALITYGATE_BYPROJECT_ENDPOINT = '/api/qualitygates/get_by_project'
 
     METRICS = "alert_status, complexity, duplicated_lines_density,code_smells, sqale_rating, sqale_index,\
         bugs, reliability_rating, vulnerabilities,security_rating, ncloc, coverage"
@@ -90,6 +91,14 @@ class SonarAPIHandler(object):
         datos = self._make_call(self.PROJECT_SEARCH_ENDPOINT, **query_args)
         return datos
 
+    def get_qualitygate_by_project(self, component):
+        query_args = {
+            'project': component
+        }
+        logging.debug(query_args)
+        datos = self._make_call(self.QUALITYGATE_BYPROJECT_ENDPOINT, **query_args)
+        return datos
+    
     def get_measures_component(self, component):
         query_args = {
             'component': component,
