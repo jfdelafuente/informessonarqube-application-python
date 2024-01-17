@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
-            'code_smells', 'bugs', 'vulnerabilities', 'sqale_index', 'sqale_rating', 'reliability_rating',
+            'code_smells', 'bugs', 'vulnerabilities', 'sqale_index', 'sqale_rating', 'sqale_debt_ratio', 'reliability_rating',
             'security_rating', 'alert_status', 'app_sonar', 'quality_gate']
 
 

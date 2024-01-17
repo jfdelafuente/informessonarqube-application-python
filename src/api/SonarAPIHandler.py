@@ -20,8 +20,8 @@ class SonarAPIHandler(object):
     PROJECT_SEARCH_ENDPOINT = '/api/projects/search'
     QUALITYGATE_BYPROJECT_ENDPOINT = '/api/qualitygates/get_by_project'
 
-    METRICS = "alert_status, complexity, duplicated_lines_density,code_smells, sqale_rating, sqale_index,\
-        bugs, reliability_rating, vulnerabilities,security_rating, ncloc, coverage"
+    METRICS = "alert_status, complexity, duplicated_lines_density, code_smells, sqale_rating, sqale_index,\
+        sqale_debt_ratio, bugs, reliability_rating, vulnerabilities, security_rating, ncloc, coverage"
         
 
     def __init__(self, host=None, base_path=None):
