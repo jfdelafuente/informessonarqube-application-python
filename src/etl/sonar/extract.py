@@ -2,11 +2,11 @@ import json
 import requests
 import api.SonarAPIHandler as sonarAPIHandler
 import pandas as pd
-from utils.utils import get_namespace, get_lenguaje
+from utils.utils import get_namespace, get_lenguaje, get_tipo
 from datetime import datetime
 
 
-columns = ['aplicacion', 'proyecto', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
+columns = ['aplicacion', 'proyecto', 'tipo', 'lenguaje', 'date', 'complexity', 'coverage', 'ncloc',	'duplicated_lines_density',
             'code_smells', 'bugs', 'vulnerabilities', 'sqale_index', 'sqale_rating', 'sqale_debt_ratio', 'reliability_rating',
             'security_rating', 'alert_status', 'app_sonar', 'quality_gate']
 
@@ -24,6 +24,7 @@ def extract_proyectos(sonar_handle):
     
     def get_project_data(project):
         namespace = get_namespace(project["project"])
+        tipo = get_tipo(project["project"])
         lenguaje = get_lenguaje(project["project"])
         quality_gate = sonar_handle.get_qualitygate_by_project(project["project"])
         quality_json = json.loads(quality_gate.text)
@@ -31,6 +32,7 @@ def extract_proyectos(sonar_handle):
             project["project"],
             namespace,
             project["name"],
+            tipo,
             lenguaje,
             quality_json["qualityGate"]["name"]
         )
@@ -76,7 +78,7 @@ def extract_proyectos(sonar_handle):
             break
 
     print(f"Extraccion Proyectos: se han tratado {contador} proyectos")
-    df_project = pd.DataFrame(project_ids, columns=["project", "namespace", "name", "lenguaje", "quality_gate"])
+    df_project = pd.DataFrame(project_ids, columns=["project", "namespace", "name", "tipo", "lenguaje", "quality_gate"])
     # print(df_project)
     return df_project
 
@@ -142,9 +144,17 @@ def extract_historico_columnas(df_projects, sonar_handle):
                 tratadas += 1
                 # print(f'Tratando {i+1}/{total_history} del proyecto {row["project"]}')
                 dict_metrics = {}
-                dict_metrics["aplicacion"] = get_namespace(row["project"])
+                # dict_metrics["aplicacion"] = get_namespace(row["project"])
+                # dict_metrics["proyecto"] = row["name"]
+                # dict_metrics["tipo"] = row["tipo"]
+                # dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+                # dict_metrics["app_sonar"] = row["project"]
+                # dict_metrics["quality_gate"] = row["quality_gate"]
+                
+                dict_metrics["aplicacion"] = row["namespace"]
                 dict_metrics["proyecto"] = row["name"]
-                dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+                dict_metrics["tipo"] = row["tipo"]
+                dict_metrics["lenguaje"] = row["lenguaje"]
                 dict_metrics["app_sonar"] = row["project"]
                 dict_metrics["quality_gate"] = row["quality_gate"]
                 
@@ -188,9 +198,17 @@ def extract_historico_columnas_from(df_projects, date_from, sonar_handle):
                 tratadas = tratadas + 1
                 # print(f'Tratando {i+1}/{total_history} del proyecto {row["project"]}')
                 dict_metrics = {}
-                dict_metrics["aplicacion"] = get_namespace(row["project"])
+                # dict_metrics["aplicacion"] = get_namespace(row["project"])
+                # dict_metrics["proyecto"] = row["name"]
+                # dict_metrics["tipo"] = row["tipo"]
+                # dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+                # dict_metrics["app_sonar"] = row["project"]
+                # dict_metrics["quality_gate"] = row["quality_gate"]
+                
+                dict_metrics["aplicacion"] = row["namespace"]
                 dict_metrics["proyecto"] = row["name"]
-                dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+                dict_metrics["tipo"] = row["tipo"]
+                dict_metrics["lenguaje"] = row["lenguaje"]
                 dict_metrics["app_sonar"] = row["project"]
                 dict_metrics["quality_gate"] = row["quality_gate"]
                 
@@ -225,9 +243,10 @@ def extract_measure(df_projects, sonar_handle):
             tratados = tratados + 1
             # print(row["project"])
             dict_metrics = {}
-            dict_metrics["aplicacion"] = get_namespace(row["project"])
+            dict_metrics["aplicacion"] = row["namespace"]
             dict_metrics["proyecto"] = row["name"]
-            dict_metrics["lenguaje"] = get_lenguaje(row["project"])
+            dict_metrics["tipo"] = row["tipo"]
+            dict_metrics["lenguaje"] = row["lenguaje"]
             dict_metrics["app_sonar"] = row["project"]
             dict_metrics["quality_gate"] = row["quality_gate"]
 

@@ -41,6 +41,14 @@ def get_namespace(project):
     except ValueError:
         return "error"
 
+def get_tipo(project):
+    try:
+        aplicacion, extension = project.split(sep=':')
+        dominio, empresa, namespace, tipo, lenguaje = aplicacion.split(sep='.')
+        return tipo
+    except ValueError:
+        return "error tipo"
+    
 def get_lenguaje(project):
     try:
         aplicacion, extension = project.split(sep=':')

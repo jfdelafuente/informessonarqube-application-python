@@ -36,7 +36,7 @@ def main():
         load_to_csv(configSonar.DIR_SONAR_XLSX +
             "sonar_salida_projects_etl_tc.csv", df_project)
     
-    print("/tEXTRACCION proyectos duration: {} seconds".format(
+    print("EXTRACCION proyectos duration: {} seconds".format(
         time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
     print("----------\n")
