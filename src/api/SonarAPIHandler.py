@@ -109,9 +109,10 @@ class SonarAPIHandler(object):
         body = self._make_call(self.MEASURES_COMPONENT_ENDPOINT, **query_args)
         return body
 
-    def get_measures_history(self, component):
+    def get_measures_history(self, component, index):
         query_args = {
             'component': component,
+            'p': index,
             'metrics': self.METRICS
         }
         logging.debug(query_args)
@@ -119,9 +120,10 @@ class SonarAPIHandler(object):
             self.MEASURES_SEARCH_HISTORY_ENDPOINT, **query_args)
         return body
 
-    def get_measures_history_from(self, component, fecha):
+    def get_measures_history_from(self, component, index, fecha):
         query_args = {
             'component': component,
+            'p': index,
             'metrics': self.METRICS,
             'from': fecha
         }

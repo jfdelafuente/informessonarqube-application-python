@@ -36,8 +36,7 @@ def main():
         load_to_csv(configSonar.DIR_SONAR_XLSX +
             "sonar_salida_projects_etl_tc.csv", df_project)
     
-    print("EXTRACCION proyectos duration: {} seconds".format(
-        time.time() - start_time))        
+    print("EXTRACCION proyectos duration: {} seconds".format(time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
     print("----------\n")
 
@@ -53,6 +52,7 @@ def main():
     print("SONAR : Fin eliminar Errores")
     print("----------\n")
 
+
     print("SONAR : Inicio Extracción MÉTRICAS")
     # start_time = time.time()
     df_measures = extract_measure(df_project, sonar_handler)
@@ -64,6 +64,7 @@ def main():
         time.time() - start_time))
     print("SONAR : Fin carga Métricas")
     print("----------\n")
+
 
     # Extraemos la extracción de histórico
     print("SONAR : Inicio Extracción historico")

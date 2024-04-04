@@ -17,7 +17,7 @@ def main():
     print("Inicio")
     sonar = sonarAPIHandler.SonarAPIHandler()
     
-    project_name = "com.orange.pangeaosp.spa.typescript:pdv"
+    project_name = "com.orange.crm4telcoosp.application.java:crm4telco"
     
     component_project, component_name = project_name.split(sep=':')
     origen, compania, app, aplication, lenguaje = component_project.split(sep='.')
