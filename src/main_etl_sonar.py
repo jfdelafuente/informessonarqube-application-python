@@ -1,4 +1,4 @@
-from etl.sonar.extract import extract_proyectos, extract_historico_columnas, extract_analisis, extract_historico_columnas_from, extract_measure
+from etl.sonar.extract import extract_proyectos, extract_historico_columnas, extract_analisis, extract_historico_columnas_from, extract_measure_mod
 from etl.sonar.transform import eliminar_error_namespaces
 from utils.utils import load_to_csv
 from utils.lastdate import save_current_date, leer_last_date, nombre_fichero
@@ -30,11 +30,12 @@ def main():
     # else:
     start_time = time.time()
     df_project = extract_proyectos(sonar_handler)
+    df_project = df_project.sort_values('namespace')
     
     # Solo datos para el dashboard
-    if configSonar.ONLY_DASHBOARD:
-        load_to_csv(configSonar.DIR_SONAR_XLSX +
-            "sonar_salida_projects_etl_tc.csv", df_project)
+    # if configSonar.ONLY_DASHBOARD:
+    load_to_csv(configSonar.DIR_SONAR_XLSX +
+        "sonar_salida_projects_etl_tc.csv", df_project)
     
     print("EXTRACCION proyectos duration: {} seconds".format(time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
@@ -55,7 +56,7 @@ def main():
 
     print("SONAR : Inicio Extracción MÉTRICAS")
     # start_time = time.time()
-    df_measures = extract_measure(df_project, sonar_handler)
+    df_measures = extract_measure_mod(df_project, sonar_handler)
     # df_measures = transformar_date(df_measures)
     file_measure = "sonar_salida_measure_etl_tc.csv"
     load_to_csv(configSonar.DIR_SONAR_XLSX +

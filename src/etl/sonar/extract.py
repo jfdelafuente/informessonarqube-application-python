@@ -47,6 +47,7 @@ def extract_proyectos(sonar_handle):
 
             for project in datos_json["components"]:
                 contador += 1
+                # print(f"leyendo --> {project}")
                 project_ids.append(get_project_data(project))
 
         except requests.exceptions.HTTPError as err:
@@ -196,7 +197,7 @@ def extract_historico_columnas_from(df_projects, date_from, sonar_handle):
     df_project = pd.DataFrame(project_ids, columns=columns)
     return df_project
 
-def extract_measure(df_projects, sonar_handle):
+def extract_measure_mod(df_projects, sonar_handle):
     project_ids = []
     no_tratado = 0
     tratados = 0
@@ -205,12 +206,17 @@ def extract_measure(df_projects, sonar_handle):
     for _, row in df_projects.iterrows():
         index = 1
         pageSize = 100
-        total = 5000
+        total = 500
+        valido = True
+        
         while index * pageSize < total + pageSize:
+            # print(f'Testeando # {row["project"]} index: {index}')
             measures = sonar_handle.get_measures_history(row["project"], index)
             datos_json = json.loads(measures.text)
-            #print(json.dumps(datos_json, indent=4, sort_keys=True))
-            if datos_json["paging"]["total"] > 0:
+            # print(json.dumps(datos_json, indent=4, sort_keys=True))
+            total = datos_json["paging"]["total"]
+            # print(f' total measures:  {total}')
+            if total > 0:
                 tratados = tratados + 1
                 # print(row["project"])
                 dict_metrics = {}
@@ -231,12 +237,55 @@ def extract_measure(df_projects, sonar_handle):
                     except Exception as err:
                         # print(f"No encontrado {err=} en %s" % (err))
                         dict_metrics[datos_json["measures"][i]["metric"]] = ""
-
-                project_ids.append(dict_metrics)
+                # project_ids.append(dict_metrics)
             else:
                 no_tratado = no_tratado + 1
+                valido = False
             index += 1
-            total = datos_json["paging"]["total"]            
+        if valido:
+            # print(f'cargando ... {dict_metrics}')    
+            project_ids.append(dict_metrics)
+        # print("----------")
+
+
+    print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
+    df_project = pd.DataFrame(project_ids, columns=columns)
+    return df_project
+
+def extract_measure(df_projects, sonar_handle):
+    project_ids = []
+    no_tratado = 0
+    tratados = 0
+    print(f'Se van a tratar {df_projects.shape[0]} filas')
+    for _, row in df_projects.iterrows():
+        measures = sonar_handle.get_measures_history(row["project"], index=1)
+        datos_json = json.loads(measures.text)
+        #print(json.dumps(datos_json, indent=4, sort_keys=True))
+        if datos_json["paging"]["total"] > 0:
+            tratados = tratados + 1
+            # print(row["project"])
+            dict_metrics = {}
+            dict_metrics["project"] = row["project"]
+            dict_metrics["aplicacion"] = row["namespace"]
+            dict_metrics["name"] = row["name"]
+            dict_metrics["tipo"] = row["tipo"]
+            dict_metrics["lenguaje"] = row["lenguaje"]
+            dict_metrics["quality_gate"] = row["quality_gate"]
+
+            total_measures = len(datos_json["measures"])
+            for i in range(total_measures):
+                ultimo = len(datos_json["measures"][i]["history"]) - 1
+                dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                try:
+                    dict_metrics[datos_json["measures"][i]["metric"]
+                                ] = datos_json["measures"][i]["history"][ultimo]["value"]
+                except Exception as err:
+                    # print(f"No encontrado {err=} en %s" % (err))
+                    dict_metrics[datos_json["measures"][i]["metric"]] = ""
+
+            project_ids.append(dict_metrics)
+        else:
+            no_tratado = no_tratado + 1
 
     print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
     df_project = pd.DataFrame(project_ids, columns=columns)
