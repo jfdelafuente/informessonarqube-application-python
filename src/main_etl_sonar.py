@@ -1,10 +1,9 @@
 from etl.sonar.extract import extract_proyectos, extract_historico_columnas, extract_analisis, extract_historico_columnas_from, extract_measure_mod
 from etl.sonar.transform import eliminar_error_namespaces
 from utils.utils import load_to_csv
-from utils.lastdate import save_current_date, leer_last_date, nombre_fichero
+from utils.lastdate import leer_last_date, nombre_fichero
 from datetime import datetime
 import configSonar
-import logging
 import time
 import api.SonarAPIHandler as sonarAPIHandler
 
@@ -44,7 +43,6 @@ def main():
 
     print("SONAR : Eliminar errores")
     # start_time = time.time()
-    df_project = df_project.sort_values('namespace')
     df_project, filas_eliminadas = eliminar_error_namespaces(df_project)
     print(f'Se han eliminado {filas_eliminadas} filas por error en el namespace.')
     # df_project = transformar_java(df_project)

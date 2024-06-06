@@ -20,18 +20,18 @@ def main():
     print("")
     print("SONAR: Extraccion de proyectos ...")
     df_project = extract_proyectos(sonar_handler)
-    
+    df_project = df_project.sort_values('namespace')
+
     # Solo datos para el dashboard
     load_to_csv(configSonar.DIR_SONAR_XLSX +
         "test_sonar_salida_projects_etl_tc.csv", df_project)
-         
+
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
     print("----------\n")
 
 
     print("SONAR : Eliminar errores")
     # start_time = time.time()
-    df_project = df_project.sort_values('namespace')
     df_project, filas_eliminadas = eliminar_error_namespaces(df_project)
     print(f'Se han eliminado {filas_eliminadas} filas por error en el namespace.')
     # df_project = transformar_java(df_project)

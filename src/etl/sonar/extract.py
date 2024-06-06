@@ -1,8 +1,7 @@
 import json
 import requests
-import api.SonarAPIHandler as sonarAPIHandler
 import pandas as pd
-from utils.utils import get_namespace, get_lenguaje, get_tipo
+from utils.utils import extraer_componentes
 from datetime import datetime
 
 
@@ -23,17 +22,18 @@ def extract_proyectos(sonar_handle):
     contador = 0
     
     def get_project_data(project):
-        namespace = get_namespace(project["project"])
-        tipo = get_tipo(project["project"])
-        lenguaje = get_lenguaje(project["project"])
+        # namespace = get_namespace(project["project"])
+        # tipo = get_tipo(project["project"])
+        # lenguaje = get_lenguaje(project["project"])
+        result = extraer_componentes(project["project"])
         quality_gate = sonar_handle.get_qualitygate_by_project(project["project"])
         quality_json = json.loads(quality_gate.text)
         return (
             project["project"],
-            namespace,
+            result['namespace'],
             project["name"],
-            tipo,
-            lenguaje,
+            result['tipo'],
+            result['lenguaje'],
             quality_json["qualityGate"]["name"]
         )
 
@@ -78,11 +78,12 @@ def extract_historico(df_projects, sonar_handle):
         for component in datos_json["measures"]:
             for history in component["history"]:
                 value = get_value(history)
+                result = extraer_componentes(row["project"])
                 project_ids.append(
                     (
-                        get_namespace(row["project"]),
+                        result['namespace'],
                         row["name"],
-                        get_lenguaje(row["project"]),
+                        result['lenguaje'],
                         component["metric"],
                         datetime.fromisoformat(history["date"]).strftime(
                             "%Y-%m-%d %H:%M:%S"),
@@ -308,11 +309,12 @@ def extract_analisis(df_projects, sonar_handle):
                 for eventos in analisis.get("events", []):
                     if eventos.get("category") == "VERSION":
                         tratados += 1
+                        result = extraer_componentes(row["project"])
                         project_ids.append(
                             (
-                                get_namespace(row["project"]),
+                                result['namespace'],
                                 row["name"],
-                                get_lenguaje(row["project"]),
+                                result['lenguaje'],
                                 datetime.fromisoformat(analisis["date"]).strftime("%Y-%m-%d %H:%M:%S"),
                                 eventos["name"]
                             )
