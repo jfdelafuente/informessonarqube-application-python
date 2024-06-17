@@ -1,7 +1,7 @@
 import json
 import requests
 import pandas as pd
-from utils.utils import extraer_componentes
+from etl.sonar.transform import extraer_componentes
 from datetime import datetime
 
 
@@ -22,9 +22,6 @@ def extract_proyectos(sonar_handle):
     contador = 0
     
     def get_project_data(project):
-        # namespace = get_namespace(project["project"])
-        # tipo = get_tipo(project["project"])
-        # lenguaje = get_lenguaje(project["project"])
         result = extraer_componentes(project["project"])
         quality_gate = sonar_handle.get_qualitygate_by_project(project["project"])
         quality_json = json.loads(quality_gate.text)
@@ -101,56 +98,127 @@ def extract_historico(df_projects, sonar_handle):
 '''
 def extract_historico_columnas(df_projects, sonar_handle):
     project_ids = []
-    tratadas = 0
-    evaluadas = 0
-    total_p = df_projects.shape[0]
-    print(f'Se van a tratar {total_p} filas')  
-
+    metrics_ids = []
+    no_tratado = 0
+    tratados = df_projects.shape[0]
+    # print(f'Se van a tratar {tratados} filas')  
     for t, row in df_projects.iterrows():
         index = 1
         pageSize = 100
-        total = 5000
+        total = 500
+        acumulado = 0
+        # print(f'>>> Testeando measure # {row["project"]} ....')
         while index * pageSize < total + pageSize:
             measures = sonar_handle.get_measures_history(row["project"], index)
             if measures.status_code == 200:
-                # print(f'Tratando el proyecto {row["project"]} con indice {index} OK')
                 datos_json = json.loads(measures.text)
                 # print(json.dumps(datos_json, indent=4, sort_keys=True)) 
-                evaluadas += 1
-
+                total = datos_json["paging"]["total"]
                 total_history = len(datos_json["measures"][0]["history"])
-                total_measures = len(datos_json["measures"])
-                # print(f'El proyecto {row["project"]} tiene {total_history} historico.')
-                for i in range(total_history):
-                    tratadas += 1
-                    # print(f'Tratando {i+1}/{total_history} del proyecto {row["project"]}')
-                    dict_metrics = {}
-                    dict_metrics["project"] = row["project"]
-                    dict_metrics["aplicacion"] = row["namespace"]
-                    dict_metrics["name"] = row["name"]
-                    dict_metrics["tipo"] = row["tipo"]
-                    dict_metrics["lenguaje"] = row["lenguaje"]
-                    dict_metrics["quality_gate"] = row["quality_gate"]
-                    
-                    for j in range(total_measures):
-                        dict_metrics["date"] = datetime.fromisoformat(
-                            datos_json["measures"][j]["history"][i]["date"]).strftime("%Y-%m-%d %H:%M:%S")
-                        if len(datos_json["measures"][j]["history"][i]) > 1:
-                            value = datos_json["measures"][j]["history"][i]["value"]
-                            dict_metrics[datos_json["measures"][j]["metric"]] = value
-                        else:
-                            dict_metrics[datos_json["measures"][j]["metric"]] = "0"
-                    project_ids.append(dict_metrics)
+                acumulado += total_history
+                
+                # print(f'El proyecto "{row["project"]}" tiene {total_history}/{total} historico y acumulado {acumulado}.')
+                if total > 0:
+                    for i in range(total_history):
+                        dict_metrics = {}
+                        dict_metrics["project"] = row["project"]
+                        dict_metrics["aplicacion"] = row["namespace"]
+                        dict_metrics["name"] = row["name"]
+                        dict_metrics["tipo"] = row["tipo"]
+                        dict_metrics["lenguaje"] = row["lenguaje"]
+                        dict_metrics["quality_gate"] = row["quality_gate"]
+                        
+                        total_measures = len(datos_json["measures"])
+                        for j in range(total_measures):
+                            dict_metrics["date"] = datetime.fromisoformat(
+                                datos_json["measures"][j]["history"][i]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                            if len(datos_json["measures"][j]["history"][i]) > 1:
+                                value = datos_json["measures"][j]["history"][i]["value"]
+                                dict_metrics[datos_json["measures"][j]["metric"]] = value
+                            else:
+                                dict_metrics[datos_json["measures"][j]["metric"]] = "0"
+                        # print(f'cargando ... {dict_metrics}') 
+                        ultimo = len(datos_json["measures"][j]["history"]) - 1
+
+                        # print(f'<<<<<   {row["project"]}/{row["namespace"]}  {acumulado} == {total} & {ultimo} == {i}')
+                        if acumulado == total:
+                            if ultimo==i :
+                                # print(f'####   {row["project"]}/{row["namespace"]}  {acumulado} == {total} {ultimo} == {i}')
+                                metrics_ids.append(dict_metrics)
+                        # else:
+                        #     print(f'No incluido {acumulado} == {total} {ultimo} == {i}')
+                        project_ids.append(dict_metrics)
+                else:
+                    no_tratado += 1
+                    print(f'El proyecto {row["project"]} no tiene métricas.')
+
             else:
                 print(f"Error en la solicitud HTTP para {row['project']}. Código: {measures.status_code}")
-            
+                index += 10
+                no_tratado += 1
+                
             index += 1
-            total = datos_json["paging"]["total"]
-        # print(f'Salimos while')
 
-    print(f"Extraccion Histórico: de {total_p} filas se han evaluado {evaluadas} y tratados {tratadas} proyectos")
+            # total = datos_json["paging"]["total"]
+        # print(f'-------')
+    print(f"Extraccion Historico: se han tratado {tratados-no_tratado} proyectos y no tratados {no_tratado}")
     df_project = pd.DataFrame(project_ids, columns=columns)
-    return df_project
+    df_metrics = pd.DataFrame(metrics_ids, columns=columns)
+    return df_project, df_metrics
+
+
+# def extract_historico_columnas(df_projects, sonar_handle):
+#     project_ids = []
+#     tratadas = 0
+#     evaluadas = 0
+#     total_p = df_projects.shape[0]
+#     print(f'Se van a tratar {total_p} filas')  
+
+#     for t, row in df_projects.iterrows():
+#         index = 1
+#         pageSize = 100
+#         total = 5000
+#         while index * pageSize < total + pageSize:
+#             measures = sonar_handle.get_measures_history(row["project"], index)
+#             if measures.status_code == 200:
+#                 # print(f'Tratando el proyecto {row["project"]} con indice {index} OK')
+#                 datos_json = json.loads(measures.text)
+#                 # print(json.dumps(datos_json, indent=4, sort_keys=True)) 
+#                 evaluadas += 1
+
+#                 total_history = len(datos_json["measures"][0]["history"])
+#                 total_measures = len(datos_json["measures"])
+#                 # print(f'El proyecto {row["project"]} tiene {total_history} historico.')
+#                 for i in range(total_history):
+#                     tratadas += 1
+#                     # print(f'Tratando {i+1}/{total_history} del proyecto {row["project"]}')
+#                     dict_metrics = {}
+#                     dict_metrics["project"] = row["project"]
+#                     dict_metrics["aplicacion"] = row["namespace"]
+#                     dict_metrics["name"] = row["name"]
+#                     dict_metrics["tipo"] = row["tipo"]
+#                     dict_metrics["lenguaje"] = row["lenguaje"]
+#                     dict_metrics["quality_gate"] = row["quality_gate"]
+                    
+#                     for j in range(total_measures):
+#                         dict_metrics["date"] = datetime.fromisoformat(
+#                             datos_json["measures"][j]["history"][i]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+#                         if len(datos_json["measures"][j]["history"][i]) > 1:
+#                             value = datos_json["measures"][j]["history"][i]["value"]
+#                             dict_metrics[datos_json["measures"][j]["metric"]] = value
+#                         else:
+#                             dict_metrics[datos_json["measures"][j]["metric"]] = "0"
+#                     project_ids.append(dict_metrics)
+#             else:
+#                 print(f"Error en la solicitud HTTP para {row['project']}. Código: {measures.status_code}")
+            
+#             index += 1
+#             total = datos_json["paging"]["total"]
+#         # print(f'Salimos while')
+
+#     print(f"Extraccion Histórico: de {total_p} filas se han evaluado {evaluadas} y tratados {tratadas} proyectos")
+#     df_project = pd.DataFrame(project_ids, columns=columns)
+#     return df_project
 
 def extract_historico_columnas_from(df_projects, date_from, sonar_handle):
     # inicializamos Sonarqube
@@ -193,100 +261,130 @@ def extract_historico_columnas_from(df_projects, date_from, sonar_handle):
                 project_ids.append(dict_metrics)
         else:
             print(f"Error en la solicitud HTTP para {row['project']}. Código: {measures.status_code}")
+            index += 1
 
     print(f"Extraccion Histórico: de {total} filas se han evaluado {evaluadas} y tratados {tratadas} proyectos")
-    df_project = pd.DataFrame(project_ids, columns=columns)
-    return df_project
-
-def extract_measure_mod(df_projects, sonar_handle):
-    project_ids = []
-    no_tratado = 0
-    tratados = 0
-    print(f'Se van a tratar {df_projects.shape[0]} filas')
-    
-    for _, row in df_projects.iterrows():
-        index = 1
-        pageSize = 100
-        total = 500
-        valido = True
-        
-        while index * pageSize < total + pageSize:
-            # print(f'Testeando # {row["project"]} index: {index}')
-            measures = sonar_handle.get_measures_history(row["project"], index)
-            datos_json = json.loads(measures.text)
-            # print(json.dumps(datos_json, indent=4, sort_keys=True))
-            total = datos_json["paging"]["total"]
-            # print(f' total measures:  {total}')
-            if total > 0:
-                tratados = tratados + 1
-                # print(row["project"])
-                dict_metrics = {}
-                dict_metrics["project"] = row["project"]
-                dict_metrics["aplicacion"] = row["namespace"]
-                dict_metrics["name"] = row["name"]
-                dict_metrics["tipo"] = row["tipo"]
-                dict_metrics["lenguaje"] = row["lenguaje"]
-                dict_metrics["quality_gate"] = row["quality_gate"]
-
-                total_measures = len(datos_json["measures"])
-                for i in range(total_measures):
-                    ultimo = len(datos_json["measures"][i]["history"]) - 1
-                    dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
-                    try:
-                        dict_metrics[datos_json["measures"][i]["metric"]
-                                ] = datos_json["measures"][i]["history"][ultimo]["value"]
-                    except Exception as err:
-                        # print(f"No encontrado {err=} en %s" % (err))
-                        dict_metrics[datos_json["measures"][i]["metric"]] = ""
-                # project_ids.append(dict_metrics)
-            else:
-                no_tratado = no_tratado + 1
-                valido = False
-            index += 1
-        if valido:
-            # print(f'cargando ... {dict_metrics}')    
-            project_ids.append(dict_metrics)
-        # print("----------")
-
-
-    print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
     df_project = pd.DataFrame(project_ids, columns=columns)
     return df_project
 
 def extract_measure(df_projects, sonar_handle):
     project_ids = []
     no_tratado = 0
-    tratados = 0
-    print(f'Se van a tratar {df_projects.shape[0]} filas')
+    tratados = df_projects.shape[0]
+    print(f'Se van a tratar {tratados} filas')
     for _, row in df_projects.iterrows():
-        measures = sonar_handle.get_measures_history(row["project"], index=1)
-        datos_json = json.loads(measures.text)
-        #print(json.dumps(datos_json, indent=4, sort_keys=True))
-        if datos_json["paging"]["total"] > 0:
-            tratados = tratados + 1
-            # print(row["project"])
-            dict_metrics = {}
-            dict_metrics["project"] = row["project"]
-            dict_metrics["aplicacion"] = row["namespace"]
-            dict_metrics["name"] = row["name"]
-            dict_metrics["tipo"] = row["tipo"]
-            dict_metrics["lenguaje"] = row["lenguaje"]
-            dict_metrics["quality_gate"] = row["quality_gate"]
+        index = 1
+        pageSize = 100
+        total = 500
+        acumulado = 0
+        print(f'>>> Testeando measure # {row["project"]} ....')
+        while index * pageSize < total + pageSize:
+            measures = sonar_handle.get_measures_history(row["project"], index)
+            if measures.status_code == 200:
+                datos_json = json.loads(measures.text)
+                # print(json.dumps(datos_json, indent=4, sort_keys=True))
+                total = datos_json["paging"]["total"]
+                total_history = len(datos_json["measures"][0]["history"])
+                acumulado += total_history
+                
+                print(f'El proyecto {row["project"]} tiene {total_history}/{total} historico y acumulado {acumulado}.')
+                if total == acumulado & total > 0 :
+                    dict_metrics = {}
+                    dict_metrics["project"] = row["project"]
+                    dict_metrics["aplicacion"] = row["namespace"]
+                    dict_metrics["name"] = row["name"]
+                    dict_metrics["tipo"] = row["tipo"]
+                    dict_metrics["lenguaje"] = row["lenguaje"]
+                    dict_metrics["quality_gate"] = row["quality_gate"]
 
-            total_measures = len(datos_json["measures"])
-            for i in range(total_measures):
-                ultimo = len(datos_json["measures"][i]["history"]) - 1
-                dict_metrics["date"] = datetime.fromisoformat(datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
-                try:
-                    dict_metrics[datos_json["measures"][i]["metric"]
-                                ] = datos_json["measures"][i]["history"][ultimo]["value"]
-                except Exception as err:
-                    # print(f"No encontrado {err=} en %s" % (err))
-                    dict_metrics[datos_json["measures"][i]["metric"]] = ""
+                    total_measures = len(datos_json["measures"])
+                    for i in range(total_measures):
+                        ultimo = len(datos_json["measures"][i]["history"]) - 1
+                        dict_metrics["date"] = datetime.fromisoformat(
+                            datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+                        try:
+                            dict_metrics[datos_json["measures"][i]["metric"]
+                                    ] = datos_json["measures"][i]["history"][ultimo]["value"]
+                        except Exception as err:
+                            # print(f"No encontrado {err=} en %s" % (err))
+                            dict_metrics[datos_json["measures"][i]["metric"]] = ""
+                    print(f'cargando ... {dict_metrics}') 
+                    project_ids.append(dict_metrics)
+                else:
+                    if total <= 0 :
+                        print(f'El proyecto {row["project"]} no tiene métricas.')
+                        no_tratado += 1
+                index += 1
+            else:
+                print(f"Error en la solicitud HTTP para {row['project']}. Código: {measures.status_code}")
+                index += 10
+                no_tratado += 1
 
-            project_ids.append(dict_metrics)
-        else:
-            no_tratado = no_tratado + 1
+
+        print("----------")
+
+
+    print(f"Extraccion Métricas: se han tratado {tratados-no_tratado} proyectos y no tratados {no_tratado}")
+    df_project = pd.DataFrame(project_ids, columns=columns)
+    return df_project
+
+# def extract_measure_old(df_projects, sonar_handle):
+#     project_ids = []
+#     no_tratado = 0
+#     tratados = 0
+#     print(f'Se van a tratar {df_projects.shape[0]} filas')
+#     for _, row in df_projects.iterrows():
+#         index = 1
+#         pageSize = 100
+#         total = 500
+#         valido = True
+#         while index * pageSize < total + pageSize:
+#             # print(f'Testeando # {row["project"]} index: {index}')
+#             measures = sonar_handle.get_measures_history(row["project"], index)
+#             if measures.status_code == 200:
+#                 datos_json = json.loads(measures.text)
+#                 # print(json.dumps(datos_json, indent=4, sort_keys=True))
+#                 total = datos_json["paging"]["total"]
+#                 total_history = len(datos_json["measures"][0]["history"])
+#                 print(f'El proyecto {row["project"]} tiene {total_history}/{total} historico.')
+#                 # print(f' total measures:  {total}')
+#                 if total > 0:
+#                     tratados += 1
+#                     # print(row["project"])
+#                     dict_metrics = {}
+#                     dict_metrics["project"] = row["project"]
+#                     dict_metrics["aplicacion"] = row["namespace"]
+#                     dict_metrics["name"] = row["name"]
+#                     dict_metrics["tipo"] = row["tipo"]
+#                     dict_metrics["lenguaje"] = row["lenguaje"]
+#                     dict_metrics["quality_gate"] = row["quality_gate"]
+
+#                     total_measures = len(datos_json["measures"])
+#                     for i in range(total_measures):
+#                         ultimo = len(datos_json["measures"][i]["history"]) - 1
+#                         dict_metrics["date"] = datetime.fromisoformat(
+#                             datos_json["measures"][i]["history"][ultimo]["date"]).strftime("%Y-%m-%d %H:%M:%S")
+#                         try:
+#                             dict_metrics[datos_json["measures"][i]["metric"]
+#                                     ] = datos_json["measures"][i]["history"][ultimo]["value"]
+#                         except Exception as err:
+#                             # print(f"No encontrado {err=} en %s" % (err))
+#                             dict_metrics[datos_json["measures"][i]["metric"]] = ""
+#                     # project_ids.append(dict_metrics)
+#                 else:
+#                     no_tratado += 1
+#                     valido = False
+#                 index += 1
+#             else:
+#                 print(f"Error en la solicitud HTTP para {row['project']}. Código: {measures.status_code}")
+#                 index += 10
+#                 no_tratado +=1
+#                 valido = False
+#         if valido:
+#             # print(f'cargando ... {dict_metrics}')    
+#             project_ids.append(dict_metrics)
+#         # print("----------")
+
 
     print(f"Extraccion Métricas: se han tratado {tratados} proyectos y no tratados {no_tratado}")
     df_project = pd.DataFrame(project_ids, columns=columns)

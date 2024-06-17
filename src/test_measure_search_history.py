@@ -15,7 +15,8 @@ def main():
     pageSize = 100;
     total = 5000;
     
-    project_name = "com.orange.crm4telcoosp.application.java:crm4telco"
+    # project_name = "com.orange.crm4telcoosp.application.java:crm4telco"
+    project_name = "com.orange.autorggccosp.spa.typescript:autorbdmfront"
     
     component_project, component_name = project_name.split(sep=':')
     origen, compania, app, aplication, lenguaje = component_project.split(sep='.')

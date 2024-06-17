@@ -144,9 +144,8 @@ dmypy.json
 src/consulta_proyecto_gitlab.py
 src/email_scripts.py
 src/prueba.py
-src/test_fecha.py
-src/test_measure_search_history_from.py
+src/test_*.py
 src/maint_etl_sonar_job.py
 src/maint_etl_sonar_schedule.py
-
+src/*.bak
 
