@@ -7,10 +7,12 @@ pip install -r requirements.txt
 
 ## Descripción Sonar
 
-### 1. Realizaremos las consultas a SONAR para obtener los resultados en distintos ficheros JSON.
+### 1. Realizaremos las consultas a SONAR para obtener los resultados en distintos ficheros CSV
 
   1.1 Editaremos el fichero **'./configSonar.py'** con los parametros siguientes parámetros.
 
+    - APLICACIONES_EXCLUIDAS = ['tdccicdosp','viveorangeosp','altamenaosp', 'error' ]
+    - ONLY_DASHBOARD = False
     - DIR_SONAR = './'
     - DIR_SONAR_LOGS = DIR_SONAR + 'logs/'
     - DIR_SONAR_XLSX = DIR_SONAR + 'xlsx/SONAR/'

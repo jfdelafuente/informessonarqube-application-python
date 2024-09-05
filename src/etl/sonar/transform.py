@@ -48,6 +48,17 @@ def eliminar_namespaces(df, namespace_to_exclude='tdccicdosp'):
     print(f'Se han eliminado {filas_eliminadas} filas por namespace invalido.')
     return df, filas_eliminadas
 
+def eliminar_namespaces(df, namespace_to_exclude):
+    if 'namespace' not in df.columns:
+        print("La columna 'namespace' no existe en el DataFrame.")
+        return df
+
+    num_filas = df.shape[0]
+    df_filtrado = df[~df['namespace'].isin(namespace_to_exclude)]
+    filas_eliminadas = num_filas - df_filtrado.shape[0]
+    # print(f'Se han eliminado {filas_eliminadas} filas por namespace invalido.')
+    return df_filtrado, filas_eliminadas
+
 
 def eliminar_error_namespaces(df, namespace_to_exclude='error'):
     if 'namespace' not in df.columns:

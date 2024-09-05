@@ -1,5 +1,5 @@
 from etl.sonar.extract import extract_proyectos, extract_historico_columnas, extract_analisis, extract_historico_columnas_from, extract_measure
-from etl.sonar.transform import eliminar_error_namespaces
+from etl.sonar.transform import eliminar_error_namespaces, eliminar_namespaces
 from utils.utils import load_to_csv
 from utils.lastdate import leer_last_date, nombre_fichero
 from datetime import datetime
@@ -13,9 +13,9 @@ import api.SonarAPIHandler as sonarAPIHandler
 def main():
     # logging.basicConfig(filename=configSonar.DIR_SONAR_LOGS + 'main_etl_sonar_tc.log',
     #                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=print)
-    
+
     sonar_handler = sonarAPIHandler.SonarAPIHandler()
-    
+
     start_time_total = time.time()
     print("")
     print("SONAR: Extraccion de proyectos ...")
@@ -30,12 +30,12 @@ def main():
     start_time = time.time()
     df_project = extract_proyectos(sonar_handler)
     df_project = df_project.sort_values('namespace')
-    
+
     # Solo datos para el dashboard
     # if configSonar.ONLY_DASHBOARD:
     load_to_csv(configSonar.DIR_SONAR_XLSX +
         "sonar_salida_projects_etl_tc.csv", df_project)
-    
+
     print("EXTRACCION proyectos duration: {} seconds".format(time.time() - start_time))        
     print("SONAR: Extraccion de proyectos ... Fin carga proyectos")
     print("----------\n")
@@ -43,9 +43,12 @@ def main():
 
     print("SONAR : Eliminar errores")
     start_time = time.time()
-    df_project, filas_eliminadas = eliminar_error_namespaces(df_project)
+    # df_project, filas_eliminadas = eliminar_error_namespaces(df_project)
+    df_project, filas_eliminadas = eliminar_namespaces(df_project, configSonar.APLICACIONES_EXCLUIDAS)
     print(f'Se han eliminado {filas_eliminadas} filas por error en el namespace.')
     # df_project = transformar_java(df_project)
+    # load_to_csv(configSonar.DIR_SONAR_XLSX +
+    #     "sonar_salida_projects_etl_tc_delete.csv", df_project)
     print("Limpiar Errores duration: {} seconds".format(
         time.time() - start_time))
     print("SONAR : Fin eliminar Errores")

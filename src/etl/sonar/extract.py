@@ -20,7 +20,7 @@ def extract_proyectos(sonar_handle):
     total = 5000
     project_ids = []
     contador = 0
-    
+
     def get_project_data(project):
         result = extraer_componentes(project["project"])
         quality_gate = sonar_handle.get_qualitygate_by_project(project["project"])

@@ -1,4 +1,4 @@
-APLICACIONES_EXCLUIDAS = ['tdccicdosp','viveorange','altamenaosp' ]
+APLICACIONES_EXCLUIDAS = ['tdccicdosp','viveorangeosp','altamenaosp', 'error' ]
 ONLY_DASHBOARD = False
 
 DIR_SONAR = './'
