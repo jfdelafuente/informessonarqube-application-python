@@ -77,7 +77,6 @@ echo "📌 Creando Fase 1.1 - Vectorización Pandas..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Vectorizar operaciones Pandas (20% mejora)" \
   --label "enhancement,performance,phase-1,quick-win" \
-  --milestone "Fase 1: Quick Wins" \
   --body "## ⚡ Quick Win - Vectorización Pandas
 
 **Fase:** 1
@@ -130,7 +129,6 @@ echo "📌 Creando Fase 1.2 - Reducción de logging..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Reducir logging en bucles críticos (10% mejora)" \
   --label "enhancement,performance,phase-1" \
-  --milestone "Fase 1: Quick Wins" \
   --body "## ⚡ Optimización de Logging
 
 **Fase:** 1
@@ -183,7 +181,6 @@ echo "📌 Creando Fase 1.3 - Optimización DataFrames..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Optimizar construcción de DataFrames (10-15% mejora)" \
   --label "enhancement,performance,phase-1" \
-  --milestone "Fase 1: Quick Wins" \
   --body "## ⚡ Optimización de Construcción de DataFrames
 
 **Fase:** 1
@@ -237,7 +234,6 @@ echo "📌 Creando Fase 1.4 - Sistema de caché..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Implementar caché de proyectos (50% mejora en dev)" \
   --label "enhancement,performance,phase-1,quick-win" \
-  --milestone "Fase 1: Quick Wins" \
   --body "## ⚡ Quick Win - Sistema de Caché
 
 **Fase:** 1
@@ -304,7 +300,6 @@ echo "📌 Creando Fase 2.1 - Llamadas API concurrentes..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Implementar llamadas API concurrentes con ThreadPoolExecutor (60-80% mejora)" \
   --label "enhancement,performance,phase-2" \
-  --milestone "Fase 2: Concurrencia" \
   --body "## 🚀 Llamadas API Concurrentes
 
 **Fase:** 2
@@ -379,7 +374,6 @@ echo "📌 Creando Fase 2.2 - Procesamiento paralelo..."
 gh issue create --repo "$REPO" \
   --title "[Performance] Implementar procesamiento paralelo con multiprocessing (50-70% mejora)" \
   --label "enhancement,performance,phase-2" \
-  --milestone "Fase 2: Concurrencia" \
   --body "## 🚀 Procesamiento Paralelo Multi-Core
 
 **Fase:** 2
@@ -449,7 +443,6 @@ echo "📌 Creando Fase 3.1 - Refactorización código duplicado..."
 gh issue create --repo "$REPO" \
   --title "[Refactor] Eliminar código duplicado en extractores (40% reducción)" \
   --label "refactor,tech-debt,phase-3" \
-  --milestone "Fase 3: Mantenibilidad" \
   --body "## 🧹 Eliminación de Código Duplicado
 
 **Fase:** 3
@@ -505,7 +498,6 @@ echo "📌 Creando Fase 3.2 - Separación de responsabilidades..."
 gh issue create --repo "$REPO" \
   --title "[Refactor] Dividir funciones largas y separar responsabilidades" \
   --label "refactor,tech-debt,phase-3" \
-  --milestone "Fase 3: Mantenibilidad" \
   --body "## 🧹 Separación de Responsabilidades (SOLID)
 
 **Fase:** 3
@@ -564,7 +556,6 @@ echo "📌 Creando Fase 3.3 - Configuración centralizada..."
 gh issue create --repo "$REPO" \
   --title "[Refactor] Centralizar configuración en settings.py" \
   --label "refactor,tech-debt,phase-3" \
-  --milestone "Fase 3: Mantenibilidad" \
   --body "## 🧹 Configuración Centralizada
 
 **Fase:** 3
@@ -636,7 +627,6 @@ echo "📌 Creando Fase 4.1 - Type hints completos..."
 gh issue create --repo "$REPO" \
   --title "[Clarity] Añadir type hints completos a todos los módulos" \
   --label "documentation,clarity,phase-4" \
-  --milestone "Fase 4: Claridad" \
   --body "## 📝 Type Hints Completos
 
 **Fase:** 4
@@ -712,7 +702,6 @@ echo "📌 Creando Fase 4.2 - Refactorización de nombres..."
 gh issue create --repo "$REPO" \
   --title "[Clarity] Renombrar variables y funciones con nombres descriptivos" \
   --label "refactor,clarity,phase-4" \
-  --milestone "Fase 4: Claridad" \
   --body "## 📝 Nombres Descriptivos
 
 **Fase:** 4
@@ -772,7 +761,6 @@ echo "📌 Creando Fase 4.3 - Documentación de magic numbers..."
 gh issue create --repo "$REPO" \
   --title "[Clarity] Documentar magic numbers con constantes nombradas" \
   --label "documentation,clarity,phase-4,quick-win" \
-  --milestone "Fase 4: Claridad" \
   --body "## 📝 Documentación de Magic Numbers
 
 **Fase:** 4
@@ -832,7 +820,6 @@ echo "📌 Creando Fase 0 - Benchmarking baseline..."
 gh issue create --repo "$REPO" \
   --title "[Setup] Establecer baseline de rendimiento y tests de regresión" \
   --label "setup,testing,phase-0" \
-  --milestone "Fase 0: Preparación" \
   --body "## 🔬 Fase 0: Preparación y Baseline
 
 **Fase:** 0 (Prerequisito)
