@@ -27,6 +27,8 @@ from pathlib import Path
 script_dir = Path(__file__).parent
 project_root = script_dir.parent.parent
 sys.path.insert(0, str(project_root))
+# También agregar src/ para que los imports relativos funcionen
+sys.path.insert(0, str(project_root / 'src'))
 
 
 class PerformanceBenchmark:
@@ -103,7 +105,7 @@ def benchmark_sonar_etl() -> dict:
         try:
             sonar_main()
         except Exception as e:
-            print(f"⚠️  ETL completed with warnings/errors: {e}")
+            print(f"[WARNING] ETL completed with warnings/errors: {e}")
 
     return bench.get_metrics()
 
@@ -116,7 +118,7 @@ def benchmark_gitlab_etl() -> dict:
         try:
             gitlab_main()
         except Exception as e:
-            print(f"⚠️  ETL completed with warnings/errors: {e}")
+            print(f"[WARNING] ETL completed with warnings/errors: {e}")
 
     return bench.get_metrics()
 
