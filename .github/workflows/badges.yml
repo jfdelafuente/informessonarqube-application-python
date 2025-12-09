@@ -1,0 +1,68 @@
+name: Actualizar Badges
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  update-badges:
+    name: Generar Badges de Estado
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Instalar dependencias
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Ejecutar tests y generar cobertura
+      run: |
+        pytest --cov=src --cov-report=json --cov-report=term
+
+    - name: Obtener porcentaje de cobertura
+      id: coverage
+      run: |
+        COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+        echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+        echo "📊 Cobertura de código: $COVERAGE%"
+
+    - name: Crear badge de cobertura
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: ${{ secrets.BADGE_GIST_ID }}
+        filename: coverage-badge.json
+        label: Coverage
+        message: ${{ steps.coverage.outputs.coverage }}%
+        valColorRange: ${{ steps.coverage.outputs.coverage }}
+        maxColorRange: 100
+        minColorRange: 0
+      continue-on-error: true
+
+    - name: Contar tests
+      id: tests
+      run: |
+        TEST_COUNT=$(pytest --collect-only -q | tail -n 1 | awk '{print $1}')
+        echo "count=$TEST_COUNT" >> $GITHUB_OUTPUT
+        echo "🧪 Total de tests: $TEST_COUNT"
+
+    - name: Crear badge de tests
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: ${{ secrets.BADGE_GIST_ID }}
+        filename: tests-badge.json
+        label: Tests
+        message: ${{ steps.tests.outputs.count }} passing
+        color: green
+      continue-on-error: true

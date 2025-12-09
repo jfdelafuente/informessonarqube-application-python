@@ -1,0 +1,104 @@
+name: Mantenimiento
+
+on:
+  schedule:
+    # Ejecutar cada lunes a las 3:00 AM UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:  # Permite ejecución manual
+
+jobs:
+  dependency-check:
+    name: Verificar Dependencias
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Verificar dependencias desactualizadas
+      run: |
+        pip install -r requirements.txt
+        echo "📦 Verificando dependencias desactualizadas..."
+        pip list --outdated
+
+    - name: Verificar vulnerabilidades de seguridad
+      run: |
+        pip install pip-audit
+        echo "🔒 Auditando seguridad de dependencias..."
+        pip-audit --desc || true
+      continue-on-error: true
+
+  code-metrics:
+    name: Métricas de Código
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Instalar dependencias
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install radon
+
+    - name: Complejidad ciclomática
+      run: |
+        echo "📊 Analizando complejidad ciclomática..."
+        radon cc src/ -a -nb
+
+    - name: Índice de mantenibilidad
+      run: |
+        echo "🔧 Calculando índice de mantenibilidad..."
+        radon mi src/ -nb
+
+    - name: Líneas de código
+      run: |
+        echo "📏 Contando líneas de código..."
+        find src/ -name '*.py' -exec wc -l {} + | tail -n 1
+
+    - name: Contar tests
+      run: |
+        echo "🧪 Contando tests..."
+        pytest --collect-only -q | tail -n 1
+
+  stale-check:
+    name: Verificar Issues y PRs Antiguos
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Marcar issues y PRs antiguos
+      uses: actions/stale@v9
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: 'Este issue ha estado inactivo por 60 días y será cerrado en 7 días si no hay actividad.'
+        stale-pr-message: 'Este PR ha estado inactivo por 30 días y será cerrado en 7 días si no hay actividad.'
+        days-before-stale: 60
+        days-before-close: 7
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
+        exempt-issue-labels: 'pinned,security'
+        exempt-pr-labels: 'pinned,security'
+
+  cleanup-artifacts:
+    name: Limpiar Artefactos Antiguos
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Eliminar artefactos antiguos
+      uses: c-hive/gha-remove-artifacts@v1
+      with:
+        age: '30 days'
+        skip-recent: 5
+      continue-on-error: true

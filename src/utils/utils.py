@@ -1,33 +1,63 @@
-from datetime import datetime
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Utilidades para operaciones con archivos CSV
+
+Este módulo proporciona funciones para leer y escribir DataFrames en formato CSV,
+utilizadas en los procesos ETL de SonarQube y GitLab.
+
+Funciones principales:
+    - load_to_csv: Guarda un DataFrame como archivo CSV
+    - extract_from_csv: Lee un archivo CSV y retorna un DataFrame
+"""
+
 import pandas as pd
-import json
 
-def extract_from_csv(file_to_process) -> pd.DataFrame: 
-    dataframe = pd.read_csv(file_to_process, sep=';') 
-    return dataframe
 
-def extract_from_json(file_to_process):
-    dataframe = pd.read_json(file_to_process, lines=True)
-    return dataframe
+def load_to_csv(targetfile: str, data_to_load: pd.DataFrame) -> None:
+    """
+    Guarda un DataFrame en un archivo CSV
 
-def extract_from_excel(file_to_process) -> pd.DataFrame:
-    dataframe = pd.read_excel(file_to_process) 
-    return dataframe
+    El archivo se guarda con las siguientes características:
+    - Separador: punto y coma (;)
+    - Encoding: UTF-8
+    - Sin índice de filas
 
-def load_to_csv(targetfile, data_to_load):
+    Args:
+        targetfile: Ruta del archivo de destino
+        data_to_load: DataFrame a guardar
+
+    Example:
+        >>> import pandas as pd
+        >>> df = pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]})
+        >>> load_to_csv('output/data.csv', df)
+
+    Note:
+        Si el archivo ya existe, será sobrescrito sin advertencia.
+    """
     data_to_load.to_csv(targetfile, sep=';', encoding='utf-8', index=False)
 
-def load_to_json(targetfile, data_to_load):
-    with open(targetfile, 'w') as file:
-        return json.dump(data_to_load, file)
 
-def log(message):
-    timestamp_format = '%H:%M:%S-%h-%d-%Y'
-    #Hour-Minute-Second-MonthName-Day-Year
-    now = datetime.now() # get current timestamp
-    timestamp = now.strftime(timestamp_format)
-    with open("dealership_logfile.txt","a") as f: f.write(timestamp + ',' + message + '\n')
-    
-def get_respuesta_json(response):
-    return json.loads(response.content.decode("utf8"))
+def extract_from_csv(file_to_process: str) -> pd.DataFrame:
+    """
+    Lee un archivo CSV y retorna un DataFrame
 
+    Args:
+        file_to_process: Ruta del archivo CSV a leer
+
+    Returns:
+        DataFrame con los datos del archivo CSV
+
+    Raises:
+        FileNotFoundError: Si el archivo no existe
+        pd.errors.ParserError: Si el archivo no puede ser parseado
+
+    Example:
+        >>> df = extract_from_csv('input/data.csv')
+        >>> print(df.head())
+
+    Note:
+        El archivo debe usar punto y coma (;) como separador.
+    """
+    dataframe = pd.read_csv(file_to_process, sep=';')
+    return dataframe

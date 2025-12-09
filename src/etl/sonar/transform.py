@@ -1,87 +1,172 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Módulo de Transformación ETL para SonarQube
+
+Este módulo contiene funciones de transformación y limpieza de datos
+extraídos de SonarQube.
+
+Funciones principales:
+    - extraer_componentes: Parsea claves de proyectos de SonarQube
+    - eliminar_namespaces: Filtra proyectos por namespace
+"""
+
+import logging
+from typing import Dict, Tuple
 import pandas as pd
 
 
-def tranformar_tc(df):
-    df[['project_name', 'name']] = df['project'].str.split(pat = ':', expand = True)
-    df.drop(['project'], axis=1, inplace=True)
-    df[['dominio','empresa','namespace','tipo','lenguaje']] = df['project_name'].str.split(pat = '.', n=4, expand = True)
-    df.drop(['dominio','empresa','project_name'], axis=1, inplace=True)
-    df['namespace'].fillna('None', inplace=True)
-    df['lenguaje'].fillna('None', inplace=True)
-    df['tipo'].fillna('None', inplace=True)
-    df['name'].fillna('None', inplace=True)
-    df[df['lenguaje'] != 'None']
-    df[df['namespace'] != 'None']
-    df[df['tipo'] != 'None']
-    df[df['name'] != 'None']
-    
-    return df
+def extraer_componentes(project: str) -> Dict[str, str]:
+    """
+    Parsea la clave de un proyecto de SonarQube para extraer sus componentes
+
+    Los proyectos de SonarQube tienen claves con formato:
+    - Standard: "com.empresa.namespace.tipo.lenguaje:nombre_proyecto"
+    - Extendido: "com.empresa.namespace.subtipo.tipo.lenguaje:nombre_proyecto"
+
+    Args:
+        project: Clave del proyecto de SonarQube
+
+    Returns:
+        Diccionario con claves:
+            - namespace: Namespace/aplicación del proyecto
+            - tipo: Tipo de proyecto (package, application, etc.)
+            - lenguaje: Lenguaje de programación
+
+    Example:
+        >>> extraer_componentes("com.orange.webmethods.differential.package:webmethods")
+        {'namespace': 'webmethods', 'tipo': 'package', 'lenguaje': 'differential'}
+
+        >>> extraer_componentes("com.orange.peoplesoft.application.java:psclientes")
+        {'namespace': 'peoplesoft', 'tipo': 'application', 'lenguaje': 'java'}
+
+    Note:
+        Si el proyecto no puede parsearse, retorna valores de error:
+        {'namespace': 'error', 'tipo': 'error tipo', 'lenguaje': 'no_languje'}
+    """
+    try:
+        # Separar la parte de la aplicación del nombre del proyecto
+        # Formato: "com.orange.namespace.tipo.lenguaje:nombre"
+        aplicacion, extension = project.split(sep=':')
+
+        # Contar puntos para determinar el formato
+        num_puntos = _contar_caracter(aplicacion, '.')
+
+        if num_puntos > 4:
+            # Formato extendido: com.empresa.namespace.subtipo.tipo.lenguaje
+            dominio, empresa, namespace, subtipo, tipo, lenguaje = aplicacion.split(sep='.')
+            logging.debug(
+                f"Proyecto extendido parseado: {project} -> "
+                f"namespace={namespace}, tipo={tipo}, lenguaje={lenguaje}"
+            )
+        else:
+            # Formato estándar: com.empresa.namespace.tipo.lenguaje
+            dominio, empresa, namespace, tipo, lenguaje = aplicacion.split(sep='.')
+            logging.debug(
+                f"Proyecto estándar parseado: {project} -> "
+                f"namespace={namespace}, tipo={tipo}, lenguaje={lenguaje}"
+            )
+
+        return {
+            'namespace': namespace,
+            'tipo': tipo,
+            'lenguaje': lenguaje
+        }
+
+    except ValueError as e:
+        # Error al parsear la clave del proyecto
+        logging.warning(
+            f"No se pudo parsear el proyecto '{project}': {e}. "
+            f"Retornando valores de error."
+        )
+        return {
+            'namespace': "error",
+            'tipo': "error tipo",
+            'lenguaje': "no_languje"
+        }
 
 
-def filtrar_solo_java(df):
-    if 'lenguaje' not in df.columns:
-        print("La columna 'lenguaje' no existe en el DataFrame.")
-        return df
-    
-    num_filas = df.shape[0]
-    df_extract = df[df['lenguaje'] == 'java' ]
-    print(f'Se han eliminado {(num_filas - df_extract.shape[0])} filas por no ser java.')
-    return df_extract
+def eliminar_namespaces(
+    df: pd.DataFrame,
+    namespace_to_exclude: list
+) -> Tuple[pd.DataFrame, int]:
+    """
+    Elimina filas del DataFrame cuyos namespaces estén en la lista de exclusión
 
+    Esta función filtra proyectos no deseados basándose en sus namespaces.
+    Útil para excluir aplicaciones de prueba, desarrollo o sistemas internos.
 
-def filtrar_por_fecha(df, fecha_corte='2023-01-01'):
-    num_filas = df.shape[0]
-    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
-    # filtered_df = df.loc[(df['commit_created_at'] >= '2023-01-01') & (df['commit_created_at'] < '2023-09-15')]
-    filtered_df = df.loc[(df['date'] >= fecha_corte)]
-    print(f'Se han eliminado {(num_filas - filtered_df.shape[0])} filas anteriores a {fecha_corte}.')
-    return filtered_df
+    Args:
+        df: DataFrame con columna 'namespace'
+        namespace_to_exclude: Lista de namespaces a excluir
 
-def eliminar_namespaces(df, namespace_to_exclude='tdccicdosp'):
+    Returns:
+        Tupla (df_filtrado, filas_eliminadas):
+            - df_filtrado: DataFrame sin los namespaces excluidos
+            - filas_eliminadas: Número de filas eliminadas
+
+    Raises:
+        ValueError: Si la columna 'namespace' no existe en el DataFrame
+
+    Example:
+        >>> df = pd.DataFrame({
+        ...     'namespace': ['app1', 'test', 'app2', 'dev'],
+        ...     'name': ['Project 1', 'Test', 'Project 2', 'Dev']
+        ... })
+        >>> df_clean, eliminadas = eliminar_namespaces(df, ['test', 'dev'])
+        >>> print(f"Eliminadas: {eliminadas}")
+        Eliminadas: 2
+        >>> print(df_clean['namespace'].tolist())
+        ['app1', 'app2']
+    """
+    # Validar que existe la columna namespace
     if 'namespace' not in df.columns:
-        print("La columna 'namespace' no existe en el DataFrame.")
-        return df
+        error_msg = "La columna 'namespace' no existe en el DataFrame."
+        logging.error(error_msg)
+        raise ValueError(error_msg)
 
-    num_filas = df.shape[0]
-    df = df.drop(df[df['namespace'] == namespace_to_exclude].index)
-    filas_eliminadas = num_filas - df.shape[0]
-    print(f'Se han eliminado {filas_eliminadas} filas por namespace invalido.')
-    return df, filas_eliminadas
+    # Contar filas antes del filtrado
+    num_filas_original = df.shape[0]
 
-def eliminar_namespaces(df, namespace_to_exclude):
-    if 'namespace' not in df.columns:
-        print("La columna 'namespace' no existe en el DataFrame.")
-        return df
-
-    num_filas = df.shape[0]
+    # Filtrar: mantener solo las filas cuyo namespace NO esté en la lista de exclusión
     df_filtrado = df[~df['namespace'].isin(namespace_to_exclude)]
-    filas_eliminadas = num_filas - df_filtrado.shape[0]
-    # print(f'Se han eliminado {filas_eliminadas} filas por namespace invalido.')
+
+    # Calcular filas eliminadas
+    filas_eliminadas = num_filas_original - df_filtrado.shape[0]
+
+    # Log del resultado
+    if filas_eliminadas > 0:
+        logging.info(
+            f"Eliminadas {filas_eliminadas} filas de {num_filas_original} "
+            f"por namespace inválido. Namespaces excluidos: {namespace_to_exclude}"
+        )
+    else:
+        logging.debug("No se eliminaron filas. Ningún namespace coincide con la lista de exclusión.")
+
     return df_filtrado, filas_eliminadas
 
 
-def eliminar_error_namespaces(df, namespace_to_exclude='error'):
-    if 'namespace' not in df.columns:
-        print("La columna 'namespace' no existe en el DataFrame.")
-        return df
+# =============================================================================
+# FUNCIONES AUXILIARES PRIVADAS
+# =============================================================================
 
-    num_filas = df.shape[0]
-    df = df.drop(df[df['namespace'] == namespace_to_exclude].index)
-    filas_eliminadas = num_filas - df.shape[0]
-    # print(f'Se han eliminado {filas_eliminadas} filas por error en el namespace.')
-    return df, filas_eliminadas
-
-
-def contar_caracter(palabra, caracter):
+def _contar_caracter(palabra: str, caracter: str) -> int:
     """
-    Función para contar el número de veces que un carácter aparece en una palabra.
+    Cuenta el número de veces que un carácter aparece en una palabra
 
-    Parámetros:
-    palabra (str): La palabra en la que se buscará el carácter.
-    caracter (str): El carácter a buscar en la palabra.
+    Args:
+        palabra: Texto en el que buscar
+        caracter: Carácter a contar (debe ser un solo carácter)
 
-    Retorna:
-    int: El número de veces que el carácter aparece en la palabra.
+    Returns:
+        Número de apariciones del carácter
+
+    Raises:
+        ValueError: Si el segundo argumento no es un solo carácter
+
+    Example:
+        >>> _contar_caracter("com.orange.app", ".")
+        2
     """
     if len(caracter) != 1:
         raise ValueError("El segundo argumento debe ser un solo carácter")
@@ -90,29 +175,5 @@ def contar_caracter(palabra, caracter):
     for c in palabra:
         if c == caracter:
             contador += 1
+
     return contador
-
-# com.orange.webmethods.differential.package:webmethods
-# com.orange.peoplesoft.application.java:psclientes
-def extraer_componentes(project):
-    try:
-        aplicacion, extension = project.split(sep=':')
-        num_puntos = contar_caracter(aplicacion, '.')
-
-        if num_puntos > 4:
-            dominio, empresa, namespace, subtipo, tipo, lenguaje = aplicacion.split(sep='.')
-        else:
-            dominio, empresa, namespace, tipo, lenguaje = aplicacion.split(sep='.')
-
-        return {
-            'namespace': namespace,
-            'tipo': tipo,
-            'lenguaje': lenguaje
-        }
-    except ValueError as e:
-        return {
-            'namespace': "error",
-            'tipo': "error tipo",
-            'lenguaje': "no_languje"
-        }
-

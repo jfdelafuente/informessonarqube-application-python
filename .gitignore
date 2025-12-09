@@ -26,18 +26,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-json/
-output/
-json2/
-json3/
-ejemplos_json/
-.idea/
-*.csv
-*.pbix
-*.xlsx
-*.xlsm
-database.ini
-gl.cfg
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -68,7 +56,6 @@ coverage.xml
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -140,7 +127,15 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# proyecto informes
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Proyecto específico - Scripts de desarrollo/prueba
 src/consulta_proyecto_gitlab.py
 src/email_scripts.py
 src/prueba.py
@@ -149,3 +144,38 @@ src/maint_etl_sonar_job.py
 src/maint_etl_sonar_schedule.py
 src/*.bak
 
+# Proyecto específico - Directorios temporales
+json/
+output/
+json2/
+json3/
+ejemplos_json/
+
+# Proyecto específico - Archivos de salida ETL
+# Nota: Los directorios logs/ y xlsx/ se mantienen pero sus contenidos se ignoran
+logs/*.log
+logs/**/*.log
+xlsx/**/*.csv
+xlsx/**/*.xlsx
+xlsx/**/*.xlsm
+xlsx/**/*.pbix
+
+# Mantener estructura de directorios pero ignorar contenido
+!logs/.gitkeep
+!xlsx/SONAR/.gitkeep
+!xlsx/GITLAB/.gitkeep
+
+# Proyecto específico - Archivos de configuración sensibles
+database.ini
+gl.cfg
+*.ini
+!setup.ini
+
+# Archivos temporales del sistema
+Thumbs.db
+Desktop.ini
+
+# Archivos de backup
+*.bak
+*.tmp
+*.temp
