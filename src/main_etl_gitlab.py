@@ -17,7 +17,6 @@ from utils.utils import load_to_csv, extract_from_csv
 
 '''
 
-
 def main():
     # Validar y crear directorios necesarios
     os.makedirs(configGitlab.DIR_GITLAB_LOGS, exist_ok=True)
