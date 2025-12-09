@@ -1,0 +1,44 @@
+[run]
+# Configuración de coverage.py para medir cobertura de código
+
+# Directorios a incluir en la medición
+source = src
+
+# Archivos/directorios a omitir
+omit =
+    */tests/*
+    */venv/*
+    */__pycache__/*
+    */site-packages/*
+    */dist/*
+    */build/*
+
+[report]
+# No mostrar archivos con 100% de cobertura
+skip_covered = False
+
+# Precisión de los porcentajes
+precision = 2
+
+# Mostrar líneas faltantes
+show_missing = True
+
+# Excluir líneas que contengan estos patrones
+exclude_lines =
+    # Líneas estándar a ignorar
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abstract
+
+[html]
+# Directorio donde se genera el reporte HTML
+directory = htmlcov
+
+[xml]
+# Archivo XML para integración con CI/CD
+output = coverage.xml

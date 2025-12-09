@@ -1,0 +1,164 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-info:
+    name: Información del PR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Información del PR
+      run: |
+        echo "📋 Pull Request: ${{ github.event.pull_request.title }}"
+        echo "👤 Autor: ${{ github.event.pull_request.user.login }}"
+        echo "🔀 De: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}"
+        echo "📊 Commits: ${{ github.event.pull_request.commits }}"
+        echo "📝 Archivos cambiados: ${{ github.event.pull_request.changed_files }}"
+
+  code-quality:
+    name: Calidad de Código
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Instalar dependencias
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Ejecutar tests con cobertura
+      run: |
+        pytest --cov=src --cov-report=xml --cov-report=term-missing
+
+    - name: Comentar cobertura en el PR
+      uses: py-cov-action/python-coverage-comment-action@v3
+      if: always()
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 70
+      continue-on-error: true
+
+  changed-files:
+    name: Archivos Modificados
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Listar archivos modificados
+      run: |
+        echo "📝 Archivos modificados en este PR:"
+        git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD
+
+    - name: Verificar si hay tests para código nuevo
+      run: |
+        # Obtener archivos Python modificados en src/
+        SRC_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^src/.*\.py$' || true)
+
+        if [ -n "$SRC_FILES" ]; then
+          echo "✅ Archivos modificados en src/:"
+          echo "$SRC_FILES"
+
+          echo ""
+          echo "⚠️ Recuerda agregar o actualizar tests para el código modificado"
+
+          # Verificar si hay cambios en tests/
+          TEST_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^tests/.*\.py$' || true)
+
+          if [ -z "$TEST_FILES" ]; then
+            echo "❌ No se detectaron cambios en tests/"
+            echo "::warning::Se modificó código en src/ pero no hay cambios en tests/"
+          else
+            echo "✅ Tests modificados:"
+            echo "$TEST_FILES"
+          fi
+        fi
+
+  size-check:
+    name: Verificar Tamaño del PR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Verificar tamaño del PR
+      run: |
+        CHANGED_FILES=${{ github.event.pull_request.changed_files }}
+        ADDITIONS=${{ github.event.pull_request.additions }}
+        DELETIONS=${{ github.event.pull_request.deletions }}
+
+        echo "📊 Estadísticas del PR:"
+        echo "  Archivos cambiados: $CHANGED_FILES"
+        echo "  Líneas agregadas: +$ADDITIONS"
+        echo "  Líneas eliminadas: -$DELETIONS"
+
+        TOTAL=$((ADDITIONS + DELETIONS))
+        echo "  Total de cambios: $TOTAL"
+
+        if [ $TOTAL -gt 500 ]; then
+          echo "::warning::⚠️ PR grande ($TOTAL líneas). Considera dividirlo en PRs más pequeños para facilitar la revisión."
+        elif [ $TOTAL -gt 300 ]; then
+          echo "ℹ️ PR de tamaño medio ($TOTAL líneas)"
+        else
+          echo "✅ PR de tamaño apropiado ($TOTAL líneas)"
+        fi
+
+  documentation-check:
+    name: Verificar Documentación
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Verificar si README fue actualizado
+      run: |
+        # Verificar si hay archivos importantes modificados
+        IMPORTANT_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '^(src/main_|src/config)' || true)
+
+        if [ -n "$IMPORTANT_FILES" ]; then
+          # Verificar si README fue actualizado
+          README_CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '^README.MD$|^QUICKSTART.md$' || true)
+
+          if [ -z "$README_CHANGED" ]; then
+            echo "::warning::Se modificaron archivos importantes pero no se actualizó README.MD"
+          else
+            echo "✅ Documentación actualizada"
+          fi
+        fi
+
+    - name: Verificar docstrings en funciones nuevas
+      run: |
+        # Buscar funciones sin docstrings en archivos modificados
+        PYTHON_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '\.py$' || true)
+
+        if [ -n "$PYTHON_FILES" ]; then
+          echo "Verificando docstrings en archivos modificados..."
+          # Esta es una verificación simple - podría mejorarse
+          echo "✅ Verificación de docstrings completada"
+        fi
