@@ -8,7 +8,14 @@ Uso: python test_connection.py [sonar|gitlab|all]
 
 import sys
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Agregar el directorio raíz del proyecto al path de Python
+# Este script está en scripts/validation/, así que subimos 2 niveles
+script_dir = Path(__file__).parent
+project_root = script_dir.parent.parent
+sys.path.insert(0, str(project_root))
 
 
 class Colors:
