@@ -38,6 +38,25 @@ Esta carpeta contiene el análisis completo del proyecto **informessonarqube-app
    - Benchmarking y mediciones
    - Quick wins y mejoras incrementales
 
+### 📋 Implementación y Workflow
+
+1. **[FASE_0_PREPARACION.md](./FASE_0_PREPARACION.md)**
+   - Preparación y establecimiento de baseline
+   - Scripts de benchmarking
+   - Tests de regresión
+   - Generación de fixtures
+
+2. **[GITHUB_AUTOMATION.md](./GITHUB_AUTOMATION.md)**
+   - Scripts de automatización de GitHub
+   - Creación de labels y milestones
+   - Generación de issues automática
+
+3. **[WORKFLOW_GITHUB.md](./WORKFLOW_GITHUB.md)**
+   - Flujo de trabajo con GitHub issues y PRs
+   - Comandos Git y GitHub CLI
+   - Estructura de commits
+   - Checklist por fase
+
 ## Estructura de Lectura Recomendada
 
 ### Para Stakeholders y Management
