@@ -7,16 +7,19 @@ from etl.gitlab.extract import extract_proyectos, extract_tags, extract_commits,
 from etl.gitlab.transform import transformar_created_at, eliminar_namespaces, eliminar_duplicados
 from utils.utils import load_to_csv, extract_from_csv
 
-''' 
+'''
     Script ETL para repositorios "java" y "c" subidos a GitLab
-    
+
     Extract :   Consultar proyectos, commits, tags y pipeline de GitLab
-    Transform:  Filtramos para proyectos (namespace) y para 
+    Transform:  Filtramos para proyectos (namespace) y para
                 commits, tags y pipeline (fecha año 2023)
     Load :  volcamos los datos en los correspondientes ficheros 'csv'
 
 '''
 def main():
+    # Validar y crear directorios necesarios
+    os.makedirs(configGitlab.DIR_GITLAB_LOGS, exist_ok=True)
+    os.makedirs(configGitlab.DIR_GITLAB_XLSX, exist_ok=True)
 
     print("Lanzando etl gitlab")
     logging.basicConfig(filename=configGitlab.DIR_GITLAB_LOGS + 'main_etl_gitlab.log',
@@ -63,8 +66,8 @@ def main():
         logging.info("Volcamos TAGS a cvs duration: {} seconds".format(
             time.time() - start_time))
     except Exception as err:
-        print(
-            f"GitLab: Extraccion de tags ... Encontrado {err=} en %s" % (err))
+        logging.error(f"GitLab: Error en extraccion de tags: {type(err).__name__} - {str(err)}")
+        print(f"GitLab: Extraccion de tags ... Error: {type(err).__name__} - {str(err)}")
 
     try:
         logging.info("")
@@ -82,8 +85,8 @@ def main():
         logging.info("Volcamos COMMITS a cvs duration: {} seconds".format(
             time.time() - start_time))
     except Exception as err:
-        print(
-            f"GitLab: Extraccion de commits ... Encontrado {err=} en %s" % (err))
+        logging.error(f"GitLab: Error en extraccion de commits: {type(err).__name__} - {str(err)}")
+        print(f"GitLab: Extraccion de commits ... Error: {type(err).__name__} - {str(err)}")
 
     try:
         logging.info("")
@@ -96,8 +99,8 @@ def main():
         logging.info("Concatenación duration: {} seconds".format(
             time.time() - start_time))
     except Exception as err:
-        print(
-            f"Concatenando TAGs y COMMITs y creando fichero de salida ... Encontrado {err=} en %s" % (err))
+        logging.error(f"GitLab: Error en concatenacion: {type(err).__name__} - {str(err)}")
+        print(f"Concatenando TAGs y COMMITs ... Error: {type(err).__name__} - {str(err)}")
 
     try:
         logging.info("")
@@ -116,8 +119,8 @@ def main():
         logging.info("Volcamos PIPELINES a cvs duration: {} seconds".format(
             time.time() - start_time))
     except Exception as err:
-        print(
-            f"GitLab: Extraccion de pipelines ... Encontrado {err=} en %s" % (err))
+        logging.error(f"GitLab: Error en extraccion de pipelines: {type(err).__name__} - {str(err)}")
+        print(f"GitLab: Extraccion de pipelines ... Error: {type(err).__name__} - {str(err)}")
     
     
     logging.info("")    

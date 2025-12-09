@@ -1,0 +1,26 @@
+# Dependencias de desarrollo y testing
+# Instalar con: pip install -r requirements-dev.txt
+
+# Framework de testing
+pytest==7.4.3
+pytest-cov==4.1.0           # Cobertura de código
+pytest-mock==3.12.0         # Mocking facilitado
+pytest-xdist==3.5.0         # Ejecución paralela de tests
+
+# Mocking y fixtures
+responses==0.24.1           # Mock de requests HTTP
+freezegun==1.4.0            # Mock de datetime
+faker==22.0.0               # Generación de datos fake
+
+# Análisis de código
+pylint==2.17.7              # Linting (ya incluido)
+black==24.1.0               # Formateo de código
+isort==5.13.2               # Ordenamiento de imports
+mypy==1.8.0                 # Type checking estático
+
+# Cobertura
+coverage[toml]==7.4.0       # Medición de cobertura
+
+# Utilidades
+tox==4.11.4                 # Testing en múltiples entornos
+pre-commit==3.6.0           # Git hooks para calidad de código
