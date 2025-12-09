@@ -24,12 +24,12 @@ class Colors:
 
 def print_success(text):
     """Imprime mensaje de éxito"""
-    print(f"{Colors.GREEN}✓ {text}{Colors.END}")
+    print(f"{Colors.GREEN}[OK] {text}{Colors.END}")
 
 
 def print_error(text):
     """Imprime mensaje de error"""
-    print(f"{Colors.RED}✗ {text}{Colors.END}")
+    print(f"{Colors.RED}[ERROR] {text}{Colors.END}")
 
 
 def print_info(text):
@@ -154,21 +154,21 @@ def main():
 
     for service, success in results.items():
         if success:
-            print(f"{Colors.GREEN}✓ {service}: CONECTADO{Colors.END}")
+            print(f"{Colors.GREEN}[OK] {service}: CONECTADO{Colors.END}")
         else:
-            print(f"{Colors.RED}✗ {service}: FALLÓ{Colors.END}")
+            print(f"{Colors.RED}[ERROR] {service}: FALLÓ{Colors.END}")
 
     all_success = all(results.values())
 
     print()  # Línea en blanco
 
     if all_success:
-        print(f"{Colors.GREEN}{Colors.BOLD}✓ Todas las conexiones exitosas!{Colors.END}\n")
+        print(f"{Colors.GREEN}{Colors.BOLD}[OK] Todas las conexiones exitosas!{Colors.END}\n")
         print(f"{Colors.CYAN}Puedes proceder a ejecutar los scripts ETL:{Colors.END}")
         print_info("python src/main_etl_sonar.py")
         print_info("python src/main_etl_gitlab.py")
     else:
-        print(f"{Colors.RED}{Colors.BOLD}✗ Algunas conexiones fallaron.{Colors.END}")
+        print(f"{Colors.RED}{Colors.BOLD}[ERROR] Algunas conexiones fallaron.{Colors.END}")
         print(f"{Colors.YELLOW}Verifica la configuración en .env{Colors.END}\n")
 
     sys.exit(0 if all_success else 1)

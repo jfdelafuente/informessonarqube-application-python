@@ -39,22 +39,22 @@ def print_header(text):
 
 def print_success(text):
     """Imprime mensaje de éxito"""
-    print(f"{Colors.GREEN}✓ {text}{Colors.END}")
+    print(f"{Colors.GREEN}[OK] {text}{Colors.END}")
 
 
 def print_error(text):
     """Imprime mensaje de error"""
-    print(f"{Colors.RED}✗ {text}{Colors.END}")
+    print(f"{Colors.RED}[ERROR] {text}{Colors.END}")
 
 
 def print_warning(text):
     """Imprime mensaje de advertencia"""
-    print(f"{Colors.YELLOW}⚠ {text}{Colors.END}")
+    print(f"{Colors.YELLOW}[WARNING] {text}{Colors.END}")
 
 
 def print_info(text):
     """Imprime mensaje informativo"""
-    print(f"{Colors.BLUE}ℹ {text}{Colors.END}")
+    print(f"{Colors.BLUE}[INFO] {text}{Colors.END}")
 
 
 def check_python_version():
@@ -339,7 +339,7 @@ def print_summary(results):
     failed_checks = total_checks - passed_checks
 
     for check_name, passed in results.items():
-        status = "✓ PASS" if passed else "✗ FAIL"
+        status = "[PASS]" if passed else "[FAIL]"
         color = Colors.GREEN if passed else Colors.RED
         print(f"{color}{status}{Colors.END} - {check_name}")
 
@@ -361,9 +361,10 @@ def main():
     print(f"\n{Colors.BOLD}Validador de Configuración - ETL SonarQube & GitLab{Colors.END}")
     print(f"{Colors.BLUE}Este script verificará que tu entorno esté correctamente configurado{Colors.END}")
 
-    # Cambiar al directorio del script
+    # Cambiar al directorio raíz del proyecto (2 niveles arriba desde scripts/validation/)
     script_dir = Path(__file__).parent
-    os.chdir(script_dir)
+    project_root = script_dir.parent.parent
+    os.chdir(project_root)
 
     # Ejecutar todas las verificaciones
     results = {
