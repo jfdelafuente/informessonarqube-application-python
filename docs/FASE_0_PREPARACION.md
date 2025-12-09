@@ -28,13 +28,13 @@ Script para medir el rendimiento actual del ETL.
 **Uso:**
 ```bash
 # Benchmark de todos los procesos
-python benchmark_baseline.py
+python scripts/benchmarking/benchmark_baseline.py
 
 # Solo SonarQube
-python benchmark_baseline.py sonar
+python scripts/benchmarking/benchmark_baseline.py sonar
 
 # Solo GitLab
-python benchmark_baseline.py gitlab
+python scripts/benchmarking/benchmark_baseline.py gitlab
 ```
 
 **Salidas:**
@@ -54,7 +54,7 @@ Script para capturar outputs actuales como fixtures de referencia.
 **Uso:**
 ```bash
 # Ejecutar después del ETL para capturar outputs
-python generate_baseline.py
+python scripts/benchmarking/generate_baseline.py
 ```
 
 **Salidas:**
@@ -119,14 +119,14 @@ python src/main_etl_gitlab.py
 
 ```bash
 # Generar fixtures de referencia
-python generate_baseline.py
+python scripts/benchmarking/generate_baseline.py
 ```
 
 ### Paso 3: Ejecutar Benchmark Inicial
 
 ```bash
 # Medir rendimiento actual
-python benchmark_baseline.py
+python scripts/benchmarking/benchmark_baseline.py
 ```
 
 Esto genera:
@@ -170,8 +170,10 @@ Una vez establecido el baseline:
 
 ```
 .
-├── benchmark_baseline.py          # Script de benchmarking
-├── generate_baseline.py           # Generador de fixtures
+├── scripts/
+│   └── benchmarking/
+│       ├── benchmark_baseline.py  # Script de benchmarking
+│       └── generate_baseline.py   # Generador de fixtures
 ├── tests/
 │   ├── test_regression.py         # Tests de regresión
 │   └── fixtures/
