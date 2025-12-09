@@ -7,6 +7,9 @@ pytest-cov==4.1.0           # Cobertura de código
 pytest-mock==3.12.0         # Mocking facilitado
 pytest-xdist==3.5.0         # Ejecución paralela de tests
 
+# Benchmarking y profiling
+psutil==5.9.8               # Medición de memoria y CPU
+
 # Mocking y fixtures
 responses==0.24.1           # Mock de requests HTTP
 freezegun==1.4.0            # Mock de datetime
