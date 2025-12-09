@@ -12,7 +12,7 @@ from utils.utils import load_to_csv, extract_from_csv
 
     Extract :   Consultar proyectos, commits, tags y pipeline de GitLab
     Transform:  Filtramos para proyectos (namespace) y para
-                commits, tags y pipeline (fecha año 2023)
+                commits, tags y pipeline (fecha año actual)
     Load :  volcamos los datos en los correspondientes ficheros 'csv'
 
 '''

@@ -1,14 +1,19 @@
 import pandas as pd
+from datetime import datetime
 
 '''
-    Funcion que elimina las filas del DataFrame anteriores a 2023
+    Funcion que elimina las filas del DataFrame anteriores al año actual
 '''
 
 def transformar_created_at(df):
-    df['commit_created_at'] = pd.to_datetime(df['commit_created_at'], 
+    df['commit_created_at'] = pd.to_datetime(df['commit_created_at'],
                                              format='%Y-%m-%d %H:%M:%S')
-    # filtered_df = df.loc[(df['commit_created_at'] >= '2023-01-01') & (df['commit_created_at'] < '2023-09-15')]
-    filtered_df = df.loc[(df['commit_created_at'] >= '2023-01-01')]
+
+    # Usar el año actual en lugar de hardcodeado
+    current_year = datetime.now().year
+    start_of_year = f'{current_year}-01-01'
+
+    filtered_df = df.loc[(df['commit_created_at'] >= start_of_year)]
     return filtered_df
 
 '''
