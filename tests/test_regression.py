@@ -14,7 +14,7 @@ class TestRegressionSonarETL:
     """Regression tests for SonarQube ETL"""
 
     BASELINE_DIR = Path("tests/fixtures/baseline")
-    OUTPUT_DIR = Path("output")
+    OUTPUT_DIR = Path("xlsx/SONAR")
 
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -25,7 +25,7 @@ class TestRegressionSonarETL:
     def test_projects_output_structure(self):
         """Verify projects CSV has expected columns and structure"""
         baseline_file = self.BASELINE_DIR / "sonar_proyectos_baseline.csv"
-        current_file = self.OUTPUT_DIR / "sonar_proyectos.csv"
+        current_file = self.OUTPUT_DIR / "sonar_salida_projects_etl_tc.csv"
 
         if not baseline_file.exists():
             pytest.skip("Baseline projects file not found")
@@ -50,7 +50,7 @@ class TestRegressionSonarETL:
 
     def test_projects_data_types(self):
         """Verify data types remain consistent"""
-        current_file = self.OUTPUT_DIR / "sonar_proyectos.csv"
+        current_file = self.OUTPUT_DIR / "sonar_salida_projects_etl_tc.csv"
 
         if not current_file.exists():
             pytest.skip("Current projects file not generated")
@@ -70,7 +70,7 @@ class TestRegressionSonarETL:
     def test_historico_output_structure(self):
         """Verify historico CSV has expected columns"""
         baseline_file = self.BASELINE_DIR / "sonar_historico_baseline.csv"
-        current_file = self.OUTPUT_DIR / "sonar_historico.csv"
+        current_file = self.OUTPUT_DIR / "sonar_salida_historico_etl_tc.csv"
 
         if not baseline_file.exists():
             pytest.skip("Baseline historico file not found")
@@ -88,7 +88,7 @@ class TestRegressionSonarETL:
     def test_measures_output_structure(self):
         """Verify measures CSV has expected structure"""
         baseline_file = self.BASELINE_DIR / "sonar_measures_baseline.csv"
-        current_file = self.OUTPUT_DIR / "sonar_measures.csv"
+        current_file = self.OUTPUT_DIR / "sonar_salida_measure_etl_tc.csv"
 
         if not baseline_file.exists():
             pytest.skip("Baseline measures file not found")
@@ -106,9 +106,9 @@ class TestRegressionSonarETL:
     def test_output_file_formats(self):
         """Verify all output files use consistent format (CSV with ';' separator)"""
         output_files = [
-            self.OUTPUT_DIR / "sonar_proyectos.csv",
-            self.OUTPUT_DIR / "sonar_historico.csv",
-            self.OUTPUT_DIR / "sonar_measures.csv"
+            self.OUTPUT_DIR / "sonar_salida_projects_etl_tc.csv",
+            self.OUTPUT_DIR / "sonar_salida_historico_etl_tc.csv",
+            self.OUTPUT_DIR / "sonar_salida_measure_etl_tc.csv"
         ]
 
         for file_path in output_files:
@@ -122,7 +122,7 @@ class TestRegressionSonarETL:
 
     def test_no_duplicate_projects(self):
         """Verify no duplicate project entries"""
-        current_file = self.OUTPUT_DIR / "sonar_proyectos.csv"
+        current_file = self.OUTPUT_DIR / "sonar_salida_projects_etl_tc.csv"
 
         if not current_file.exists():
             pytest.skip("Current projects file not generated")
@@ -139,7 +139,7 @@ class TestRegressionGitLabETL:
     """Regression tests for GitLab ETL"""
 
     BASELINE_DIR = Path("tests/fixtures/baseline")
-    OUTPUT_DIR = Path("output")
+    OUTPUT_DIR = Path("xlsx/GITLAB")
 
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -150,7 +150,7 @@ class TestRegressionGitLabETL:
     def test_gitlab_output_structure(self):
         """Verify GitLab CSV has expected structure"""
         baseline_file = self.BASELINE_DIR / "gitlab_commits_baseline.csv"
-        current_file = self.OUTPUT_DIR / "gitlab_commits.csv"
+        current_file = self.OUTPUT_DIR / "gitlab_salida_commits.csv"
 
         if not baseline_file.exists():
             pytest.skip("Baseline GitLab file not found")
@@ -167,7 +167,7 @@ class TestRegressionGitLabETL:
 
     def test_gitlab_year_filter(self):
         """Verify GitLab data is filtered to current year (not hardcoded 2023)"""
-        current_file = self.OUTPUT_DIR / "gitlab_commits.csv"
+        current_file = self.OUTPUT_DIR / "gitlab_salida_commits.csv"
 
         if not current_file.exists():
             pytest.skip("Current GitLab file not generated")
