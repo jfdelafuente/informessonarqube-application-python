@@ -7,7 +7,9 @@
 
 ## Overview
 
-This directory contains Python scripts to automate the creation of GitHub labels, milestones, and issues for the performance optimization project. All scripts use the GitHub REST API and don't require the `gh` CLI tool.
+Python scripts to automate the creation of GitHub labels, milestones, and issues for the performance optimization project. All scripts use the GitHub REST API and don't require the `gh` CLI tool.
+
+**Scripts location:** `.github/automation/`
 
 ---
 
@@ -66,6 +68,7 @@ Creates labels for categorizing issues.
 
 **Usage:**
 ```bash
+cd .github/automation
 python setup_github_labels.py
 ```
 
@@ -106,6 +109,7 @@ Creates milestones for tracking project phases.
 
 **Usage:**
 ```bash
+cd .github/automation
 python setup_github_milestones.py
 ```
 
@@ -162,6 +166,7 @@ Creates GitHub issues for the optimization tasks.
 
 **Usage:**
 ```bash
+cd .github/automation
 python create_issues.py
 ```
 
@@ -189,6 +194,9 @@ Creating 5 issues...
 Run scripts in this order:
 
 ```bash
+# Navigate to automation directory
+cd .github/automation
+
 # Step 1: Create labels
 python setup_github_labels.py
 
@@ -287,7 +295,7 @@ python setup_github_milestones.py
 
 ### Creating Additional Issues
 
-To create more issues, edit `create_issues.py` and add to the `ISSUES` list:
+To create more issues, edit `.github/automation/create_issues.py` and add to the `ISSUES` list:
 
 ```python
 ISSUES = [
@@ -310,6 +318,8 @@ Your issue description here
 If you have `gh` CLI installed and authenticated:
 
 ```bash
+cd .github/automation
+
 # Create labels (bash version)
 bash setup_github_labels.sh
 
@@ -322,6 +332,8 @@ bash create_issues_no_milestones.sh
 ---
 
 ## File Reference
+
+**Location:** `.github/automation/`
 
 | File | Purpose | Requires gh CLI |
 |------|---------|----------------|
