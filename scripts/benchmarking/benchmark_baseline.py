@@ -5,7 +5,7 @@ This script measures the current performance of the ETL process to establish
 a baseline for future optimizations.
 
 Usage:
-    python benchmark_baseline.py [--sonar|--gitlab|--all]
+    python scripts/benchmarking/benchmark_baseline.py [sonar|gitlab|all]
 
 Output:
     - Console: Summary of performance metrics
@@ -13,6 +13,7 @@ Output:
     - File: .benchmark/baseline_YYYY-MM-DD_HH-MM-SS.json (detailed metrics)
 """
 
+import sys
 import time
 import psutil
 import argparse
@@ -20,6 +21,12 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+
+# Agregar el directorio raíz del proyecto al path de Python
+# Este script está en scripts/benchmarking/, así que subimos 2 niveles
+script_dir = Path(__file__).parent
+project_root = script_dir.parent.parent
+sys.path.insert(0, str(project_root))
 
 
 class PerformanceBenchmark:
@@ -52,14 +59,14 @@ class PerformanceBenchmark:
         self.end_memory = self.process.memory_info().rss / 1024 / 1024  # MB
 
         if exc_type is not None:
-            print(f"\n❌ Benchmark failed with error: {exc_val}")
+            print(f"\n[ERROR] Benchmark failed with error: {exc_val}")
             return False
 
         duration = self.end_time - self.start_time
         memory_increase = self.end_memory - self.start_memory
 
         print(f"\n{'='*60}")
-        print(f"✅ Benchmark completed: {self.name}")
+        print(f"[OK] Benchmark completed: {self.name}")
         print(f"{'='*60}")
         print(f"Duration: {duration:.2f} seconds ({duration/60:.2f} minutes)")
         print(f"Final memory: {self.end_memory:.2f} MB")
@@ -247,8 +254,11 @@ def main():
 
     args = parser.parse_args()
 
+    # Cambiar al directorio raíz del proyecto
+    os.chdir(project_root)
+
     print("\n" + "="*60)
-    print("🚀 ETL Performance Baseline Benchmark")
+    print("[BENCHMARK] ETL Performance Baseline Benchmark")
     print("="*60)
     print(f"Target: {args.target}")
     print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -267,7 +277,7 @@ def main():
     update_baseline_documentation(results)
 
     print("\n" + "="*60)
-    print("✅ Benchmarking Complete")
+    print("[OK] Benchmarking Complete")
     print("="*60)
     print(f"\nResults saved to:")
     print(f"  - JSON: {output_file}")
