@@ -65,24 +65,35 @@ def calculate_improvement(before: float, after: float) -> float:
     return ((before - after) / before) * 100
 
 
-def format_change(value: float, reverse: bool = False) -> str:
+def format_time_change(improvement_pct: float) -> str:
     """
-    Formatea un cambio porcentual con color
+    Formatea cambio de tiempo con color
 
     Args:
-        value: Valor del cambio (positivo = mejora en tiempo)
-        reverse: Si True, invierte la interpretación (para memoria)
+        improvement_pct: Porcentaje de mejora (positivo = más rápido, negativo = más lento)
     """
-    if value > 0:
-        color = Colors.GREEN if not reverse else Colors.YELLOW
-        symbol = "✅" if not reverse else "⚠️"
-        prefix = "Mejora" if not reverse else "Aumento"
-        return f"{color}{symbol} {prefix}: {value:.2f}%{Colors.NC}"
-    elif value < 0:
-        color = Colors.RED if not reverse else Colors.GREEN
-        symbol = "❌" if not reverse else "✅"
-        prefix = "Regresión" if not reverse else "Reducción"
-        return f"{color}{symbol} {prefix}: {abs(value):.2f}%{Colors.NC}"
+    if improvement_pct > 0:
+        return f"{Colors.GREEN}✅ Mejora (más rápido): {improvement_pct:.2f}%{Colors.NC}"
+    elif improvement_pct < 0:
+        return f"{Colors.RED}❌ Regresión (más lento): {abs(improvement_pct):.2f}%{Colors.NC}"
+    else:
+        return "⚖️  Sin cambio: 0%"
+
+
+def format_memory_change(improvement_pct: float, absolute_change_mb: float) -> str:
+    """
+    Formatea cambio de memoria con color
+
+    Args:
+        improvement_pct: Porcentaje de mejora (positivo = menos memoria usada)
+        absolute_change_mb: Cambio absoluto en MB (positivo = más memoria, negativo = menos memoria)
+    """
+    if improvement_pct > 0:
+        # Mejora: menos memoria usada
+        return f"{Colors.GREEN}✅ Reducción (menos memoria): {improvement_pct:.2f}%{Colors.NC}"
+    elif improvement_pct < 0:
+        # Regresión: más memoria usada
+        return f"{Colors.YELLOW}⚠️  Aumento (más memoria): {abs(improvement_pct):.2f}%{Colors.NC}"
     else:
         return "⚖️  Sin cambio: 0%"
 
@@ -108,35 +119,35 @@ def compare_single_benchmark(
     time_diff = time_before - time_after
 
     print(f"{Colors.YELLOW}⏱️  Tiempo de Ejecución:{Colors.NC}")
-    print(f"  Antes:   {time_before:.2f} min")
-    print(f"  Después: {time_after:.2f} min")
-    print(f"  Cambio:  {time_diff:+.2f} min")
-    print(f"  {format_change(time_improvement)}")
+    print(f"  Antes:   {time_before:.2f} min ({before_data['duration_seconds']:.2f}s)")
+    print(f"  Después: {time_after:.2f} min ({after_data['duration_seconds']:.2f}s)")
+    print(f"  Diferencia:  {-time_diff:.2f} min ({-(before_data['duration_seconds'] - after_data['duration_seconds']):.2f}s)")
+    print(f"  {format_time_change(time_improvement)}")
 
     # Comparar memoria
     mem_before = before_data['memory_increase_mb']
     mem_after = after_data['memory_increase_mb']
-    mem_change = calculate_improvement(mem_before, mem_after)
+    mem_improvement = calculate_improvement(mem_before, mem_after)
     mem_diff = mem_after - mem_before
 
-    print(f"\n{Colors.YELLOW}💾 Uso de Memoria:{Colors.NC}")
+    print(f"\n{Colors.YELLOW}💾 Uso de Memoria (Incremento durante ejecución):{Colors.NC}")
     print(f"  Antes:   {mem_before:.2f} MB")
     print(f"  Después: {mem_after:.2f} MB")
-    print(f"  Cambio:  {mem_diff:+.2f} MB")
-    print(f"  {format_change(mem_change, reverse=True)}")
+    print(f"  Diferencia:  {mem_diff:+.2f} MB")
+    print(f"  {format_memory_change(mem_improvement, mem_diff)}")
 
     # Mostrar métricas adicionales
-    print(f"\n{Colors.BLUE}ℹ️  Detalles Adicionales:{Colors.NC}")
-    print(f"  Duración (segundos): {before_data['duration_seconds']:.2f}s → "
-          f"{after_data['duration_seconds']:.2f}s")
+    print(f"\n{Colors.BLUE}ℹ️  Detalles de Memoria:{Colors.NC}")
+    print(f"  Memoria inicial: {before_data['start_memory_mb']:.2f} MB → "
+          f"{after_data['start_memory_mb']:.2f} MB")
     print(f"  Memoria final: {before_data['end_memory_mb']:.2f} MB → "
           f"{after_data['end_memory_mb']:.2f} MB")
-    print(f"  Pico memoria: {before_data['peak_memory_mb']:.2f} MB → "
+    print(f"  Pico de memoria: {before_data['peak_memory_mb']:.2f} MB → "
           f"{after_data['peak_memory_mb']:.2f} MB")
 
     print("─" * 64)
 
-    return time_improvement, mem_change
+    return time_improvement, mem_improvement
 
 
 def print_summary(
@@ -151,17 +162,21 @@ def print_summary(
     print("═" * 64)
 
     total_time_improvement = calculate_improvement(total_time_before, total_time_after)
-    total_mem_change = calculate_improvement(total_mem_before, total_mem_after)
+    total_mem_improvement = calculate_improvement(total_mem_before, total_mem_after)
+    total_time_diff = total_time_before - total_time_after
+    total_mem_diff = total_mem_after - total_mem_before
 
-    print(f"\n{Colors.YELLOW}⏱️  Tiempo Total:{Colors.NC}")
+    print(f"\n{Colors.YELLOW}⏱️  Tiempo Total de Ejecución:{Colors.NC}")
     print(f"  Antes:   {total_time_before:.2f} min")
     print(f"  Después: {total_time_after:.2f} min")
-    print(f"  {Colors.BOLD}{format_change(total_time_improvement)}{Colors.NC}")
+    print(f"  Diferencia:  {-total_time_diff:.2f} min")
+    print(f"  {Colors.BOLD}{format_time_change(total_time_improvement)}{Colors.NC}")
 
-    print(f"\n{Colors.YELLOW}💾 Memoria Total:{Colors.NC}")
+    print(f"\n{Colors.YELLOW}💾 Memoria Total (Incremento):{Colors.NC}")
     print(f"  Antes:   {total_mem_before:.2f} MB")
     print(f"  Después: {total_mem_after:.2f} MB")
-    print(f"  {Colors.BOLD}{format_change(total_mem_change, reverse=True)}{Colors.NC}")
+    print(f"  Diferencia:  {total_mem_diff:+.2f} MB")
+    print(f"  {Colors.BOLD}{format_memory_change(total_mem_improvement, total_mem_diff)}{Colors.NC}")
 
     print("\n" + "═" * 64 + "\n")
 
