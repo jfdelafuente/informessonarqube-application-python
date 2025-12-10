@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-12-10T11:02:08.747207",
+  "system_info": {
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "total_memory_gb": 14.93
+  },
+  "benchmarks": [
+    {
+      "name": "SonarQube ETL",
+      "timestamp": "2025-12-10T11:02:07.910910",
+      "duration_seconds": 2809.66,
+      "duration_minutes": 46.83,
+      "start_memory_mb": 14.16,
+      "end_memory_mb": 36.03,
+      "memory_increase_mb": 21.87,
+      "peak_memory_mb": 14.16
+    },
+    {
+      "name": "GitLab ETL",
+      "timestamp": "2025-12-10T11:02:08.746204",
+      "duration_seconds": 0.83,
+      "duration_minutes": 0.01,
+      "start_memory_mb": 36.09,
+      "end_memory_mb": 41.18,
+      "memory_increase_mb": 5.09,
+      "peak_memory_mb": 36.09
+    }
+  ]
+}
