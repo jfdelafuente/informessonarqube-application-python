@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Script para comparar dos archivos de benchmark JSON y calcular mejoras de rendimiento
 
@@ -19,9 +20,16 @@ Características:
 
 import json
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple
+
+# Fix encoding para Windows
+if sys.platform == 'win32':
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 
 class Colors:
