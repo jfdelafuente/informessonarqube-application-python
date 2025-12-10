@@ -198,7 +198,9 @@ def update_baseline_documentation(results: list):
 
 """
 
-    content += """
+    baseline_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    content += f"""
 ---
 
 ## Interpretation
@@ -231,7 +233,7 @@ After optimizations, we should see:
 
 ---
 
-**Baseline established on:** {datetime.now().strftime('%Y-%m-%d')}
+**Baseline established on:** {baseline_timestamp}
 """
 
     os.makedirs("docs", exist_ok=True)

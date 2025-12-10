@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-12-10T20:01:50.590420",
+  "system_info": {
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "total_memory_gb": 14.93
+  },
+  "benchmarks": [
+    {
+      "name": "SonarQube ETL",
+      "timestamp": "2025-12-10T20:01:50.589351",
+      "duration_seconds": 2224.74,
+      "duration_minutes": 37.08,
+      "start_memory_mb": 14.14,
+      "end_memory_mb": 37.4,
+      "memory_increase_mb": 23.26,
+      "peak_memory_mb": 14.14
+    }
+  ]
+}

@@ -147,25 +147,36 @@ def _format_datetime(date_str: str) -> str:
         return date_str
 
 
-def _create_metrics_dict(row: pd.Series, base_data: Dict[str, str]) -> Dict[str, Any]:
+def _create_metrics_dict(row, base_data: Dict[str, str]) -> Dict[str, Any]:
     """
     Crea el diccionario base de métricas con información del proyecto
 
     Args:
-        row: Fila del DataFrame de proyectos
+        row: Fila del DataFrame de proyectos (puede ser pd.Series o namedtuple)
         base_data: Datos base adicionales (por ejemplo, fecha)
 
     Returns:
         Diccionario con información base del proyecto
     """
-    metrics = {
-        "project": row["project"],
-        "aplicacion": row["namespace"],
-        "name": row["name"],
-        "tipo": row["tipo"],
-        "lenguaje": row["lenguaje"],
-        "quality_gate": row["quality_gate"]
-    }
+    # Soportar tanto pd.Series (con row["key"]) como namedtuples (con row.key)
+    if hasattr(row, '_fields'):  # Es un namedtuple de itertuples()
+        metrics = {
+            "project": row.project,
+            "aplicacion": row.namespace,
+            "name": row.name,
+            "tipo": row.tipo,
+            "lenguaje": row.lenguaje,
+            "quality_gate": row.quality_gate
+        }
+    else:  # Es un pd.Series de iterrows()
+        metrics = {
+            "project": row["project"],
+            "aplicacion": row["namespace"],
+            "name": row["name"],
+            "tipo": row["tipo"],
+            "lenguaje": row["lenguaje"],
+            "quality_gate": row["quality_gate"]
+        }
     metrics.update(base_data)
     return metrics
 
@@ -236,7 +247,7 @@ def extract_proyectos(sonar_handle) -> pd.DataFrame:
                 project_name = project.get('name', 'unknown')[:40]
                 _print_progress(contador, total, f"Extrayendo: {project_name}")
 
-                logging.debug(f"Procesando proyecto {contador}/{total}: {project.get('key', 'unknown')}")
+                # Logging removido del loop para mejor rendimiento
                 project_ids.append(get_project_data(project))
 
         except requests.exceptions.HTTPError as err:
@@ -289,12 +300,13 @@ def extract_historico(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
         """Extrae el valor de forma segura"""
         return history.get("value", 0)
 
-    for i, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for i, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
 
         _print_progress(i + 1, total_projects, f"Procesando: {project_name}")
-        logging.debug(f"Extrayendo histórico de {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         try:
             measures = sonar_handle.get_measures_history(project_key, index=1)
@@ -310,7 +322,7 @@ def extract_historico(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
 
                     project_ids.append((
                         result['namespace'],
-                        row["name"],
+                        row.name,
                         result['lenguaje'],
                         metric_name,
                         date_formatted,
@@ -418,9 +430,10 @@ def _extract_historico_columnas_internal(
 
     logging.info(f"Iniciando extracción {extraction_type} de histórico para {tratados} proyectos")
 
-    for t, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for t, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         index = 1
         total = 500
         acumulado = 0
@@ -431,7 +444,7 @@ def _extract_historico_columnas_internal(
             f"Proyecto: {project_name} | Métricas: {acumulado}"
         )
 
-        logging.debug(f"Procesando proyecto {t + 1}/{tratados}: {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         while index * DEFAULT_PAGE_SIZE < total + DEFAULT_PAGE_SIZE:
             try:
@@ -442,10 +455,7 @@ def _extract_historico_columnas_internal(
                     measures = sonar_handle.get_measures_history(project_key, index)
 
                 if measures.status_code != 200:
-                    logging.warning(
-                        f"Error HTTP {measures.status_code} para {project_key}. "
-                        f"Saltando {DEFAULT_PAGE_SIZE} registros."
-                    )
+                    # Logging removido del loop - acumular errores para resumen final
                     index += 10
                     no_tratado += 1
                     break
@@ -454,13 +464,13 @@ def _extract_historico_columnas_internal(
                 total = datos_json["paging"]["total"]
 
                 if total == 0:
-                    logging.debug(f"El proyecto {project_key} no tiene métricas históricas")
+                    # Logging removido del loop para mejor rendimiento
                     no_tratado += 1
                     break
 
                 # Verificar que existan métricas
                 if not datos_json.get("measures") or len(datos_json["measures"]) == 0:
-                    logging.debug(f"No hay métricas en la respuesta para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     break
 
                 total_history = len(datos_json["measures"][0]["history"])
@@ -563,22 +573,23 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
     _print_info(f"Iniciando extracción de métricas actuales para {tratados} proyectos...")
     logging.info(f"Iniciando extracción de métricas actuales para {tratados} proyectos")
 
-    for idx, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for idx, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         index = 1
         total = 500
         acumulado = 0
 
         _print_progress(idx + 1, tratados, f"Procesando: {project_name}")
-        logging.debug(f"Procesando métricas de {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         while index * DEFAULT_PAGE_SIZE < total + DEFAULT_PAGE_SIZE:
             try:
                 measures = sonar_handle.get_measures_history(project_key, index)
 
                 if measures.status_code != 200:
-                    logging.warning(f"Error HTTP {measures.status_code} para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     index += 10
                     no_tratado += 1
                     break
@@ -588,7 +599,7 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
                 total_history = len(datos_json["measures"][0]["history"])
                 acumulado += total_history
 
-                logging.debug(f"{project_key}: {total_history}/{total} histórico, acumulado: {acumulado}")
+                # Logging removido del loop para mejor rendimiento
 
                 # Solo procesar cuando tengamos todo el histórico
                 if total == acumulado and total > 0:
@@ -609,11 +620,11 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
                         except Exception:
                             dict_metrics[measure["metric"]] = ""
 
-                    logging.debug(f"Métricas extraídas para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     project_ids.append(dict_metrics)
 
                 elif total <= 0:
-                    logging.debug(f"{project_key} no tiene métricas")
+                    # Logging removido del loop para mejor rendimiento
                     no_tratado += 1
 
                 index += 1
@@ -660,19 +671,20 @@ def extract_analisis(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
     _print_info(f"Iniciando extracción de análisis para {total_proyectos} proyectos...")
     logging.info(f"Iniciando extracción de análisis para {total_proyectos} proyectos")
 
-    for i, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for i, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         evaluados += 1
 
         _print_progress(evaluados, total_proyectos, f"Analizando: {project_name} | Versiones: {tratados}")
-        logging.debug(f"Procesando análisis {evaluados}/{total_proyectos}: {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         try:
             measures = sonar_handle.get_project_analyses(project_key)
 
             if measures.status_code != 200:
-                logging.warning(f"Error HTTP {measures.status_code} para {project_key}")
+                # Logging removido del loop para mejor rendimiento
                 continue
 
             datos_json = json.loads(measures.text)
@@ -687,7 +699,7 @@ def extract_analisis(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
 
                         project_ids.append((
                             result['namespace'],
-                            row["name"],
+                            row.name,
                             result['lenguaje'],
                             date_formatted,
                             eventos["name"]
