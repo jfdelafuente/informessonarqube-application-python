@@ -147,25 +147,36 @@ def _format_datetime(date_str: str) -> str:
         return date_str
 
 
-def _create_metrics_dict(row: pd.Series, base_data: Dict[str, str]) -> Dict[str, Any]:
+def _create_metrics_dict(row, base_data: Dict[str, str]) -> Dict[str, Any]:
     """
     Crea el diccionario base de métricas con información del proyecto
 
     Args:
-        row: Fila del DataFrame de proyectos
+        row: Fila del DataFrame de proyectos (puede ser pd.Series o namedtuple)
         base_data: Datos base adicionales (por ejemplo, fecha)
 
     Returns:
         Diccionario con información base del proyecto
     """
-    metrics = {
-        "project": row["project"],
-        "aplicacion": row["namespace"],
-        "name": row["name"],
-        "tipo": row["tipo"],
-        "lenguaje": row["lenguaje"],
-        "quality_gate": row["quality_gate"]
-    }
+    # Soportar tanto pd.Series (con row["key"]) como namedtuples (con row.key)
+    if hasattr(row, '_fields'):  # Es un namedtuple de itertuples()
+        metrics = {
+            "project": row.project,
+            "aplicacion": row.namespace,
+            "name": row.name,
+            "tipo": row.tipo,
+            "lenguaje": row.lenguaje,
+            "quality_gate": row.quality_gate
+        }
+    else:  # Es un pd.Series de iterrows()
+        metrics = {
+            "project": row["project"],
+            "aplicacion": row["namespace"],
+            "name": row["name"],
+            "tipo": row["tipo"],
+            "lenguaje": row["lenguaje"],
+            "quality_gate": row["quality_gate"]
+        }
     metrics.update(base_data)
     return metrics
 
@@ -289,9 +300,10 @@ def extract_historico(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
         """Extrae el valor de forma segura"""
         return history.get("value", 0)
 
-    for i, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for i, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
 
         _print_progress(i + 1, total_projects, f"Procesando: {project_name}")
         # Logging removido del loop para mejor rendimiento
@@ -310,7 +322,7 @@ def extract_historico(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
 
                     project_ids.append((
                         result['namespace'],
-                        row["name"],
+                        row.name,
                         result['lenguaje'],
                         metric_name,
                         date_formatted,
@@ -418,9 +430,10 @@ def _extract_historico_columnas_internal(
 
     logging.info(f"Iniciando extracción {extraction_type} de histórico para {tratados} proyectos")
 
-    for t, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for t, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         index = 1
         total = 500
         acumulado = 0
@@ -560,9 +573,10 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
     _print_info(f"Iniciando extracción de métricas actuales para {tratados} proyectos...")
     logging.info(f"Iniciando extracción de métricas actuales para {tratados} proyectos")
 
-    for idx, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for idx, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         index = 1
         total = 500
         acumulado = 0
@@ -657,9 +671,10 @@ def extract_analisis(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
     _print_info(f"Iniciando extracción de análisis para {total_proyectos} proyectos...")
     logging.info(f"Iniciando extracción de análisis para {total_proyectos} proyectos")
 
-    for i, row in df_projects.iterrows():
-        project_key = row["project"]
-        project_name = row["name"][:40]
+    # Usar itertuples() en lugar de iterrows() para mejor rendimiento (100x más rápido)
+    for i, row in enumerate(df_projects.itertuples(index=False), start=0):
+        project_key = row.project
+        project_name = row.name[:40]
         evaluados += 1
 
         _print_progress(evaluados, total_proyectos, f"Analizando: {project_name} | Versiones: {tratados}")
@@ -684,7 +699,7 @@ def extract_analisis(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
 
                         project_ids.append((
                             result['namespace'],
-                            row["name"],
+                            row.name,
                             result['lenguaje'],
                             date_formatted,
                             eventos["name"]
