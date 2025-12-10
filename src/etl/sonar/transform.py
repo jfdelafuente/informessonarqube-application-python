@@ -13,9 +13,11 @@ Funciones principales:
 
 import logging
 from typing import Dict, Tuple
+from functools import lru_cache
 import pandas as pd
 
 
+@lru_cache(maxsize=1024)
 def extraer_componentes(project: str) -> Dict[str, str]:
     """
     Parsea la clave de un proyecto de SonarQube para extraer sus componentes
@@ -41,8 +43,10 @@ def extraer_componentes(project: str) -> Dict[str, str]:
         {'namespace': 'peoplesoft', 'tipo': 'application', 'lenguaje': 'java'}
 
     Note:
-        Si el proyecto no puede parsearse, retorna valores de error:
-        {'namespace': 'error', 'tipo': 'error tipo', 'lenguaje': 'no_languje'}
+        - Si el proyecto no puede parsearse, retorna valores de error:
+          {'namespace': 'error', 'tipo': 'error tipo', 'lenguaje': 'no_languje'}
+        - Esta función está cacheada (LRU cache de 1024 entradas) para evitar
+          parsing redundante del mismo proyecto key
     """
     try:
         # Separar la parte de la aplicación del nombre del proyecto
