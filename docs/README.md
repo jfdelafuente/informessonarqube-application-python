@@ -52,12 +52,19 @@ Esta carpeta contiene el análisis completo del proyecto **informessonarqube-app
    - Tests y validaciones
    - Commits y archivos modificados
 
-3. **[GITHUB_AUTOMATION.md](./GITHUB_AUTOMATION.md)**
+3. **[USO_PRACTICO_BENCHMARK.md](./USO_PRACTICO_BENCHMARK.md)**
+   - Guía práctica de benchmarking
+   - Workflow completo antes/después optimizaciones
+   - Comandos y escenarios de uso
+   - Comparación de resultados
+   - Troubleshooting
+
+4. **[GITHUB_AUTOMATION.md](./GITHUB_AUTOMATION.md)**
    - Scripts de automatización de GitHub
    - Creación de labels y milestones
    - Generación de issues automática
 
-4. **[WORKFLOW_GITHUB.md](./WORKFLOW_GITHUB.md)**
+5. **[WORKFLOW_GITHUB.md](./WORKFLOW_GITHUB.md)**
    - Flujo de trabajo con GitHub issues y PRs
    - Comandos Git y GitHub CLI
    - Estructura de commits
