@@ -236,7 +236,7 @@ def extract_proyectos(sonar_handle) -> pd.DataFrame:
                 project_name = project.get('name', 'unknown')[:40]
                 _print_progress(contador, total, f"Extrayendo: {project_name}")
 
-                logging.debug(f"Procesando proyecto {contador}/{total}: {project.get('key', 'unknown')}")
+                # Logging removido del loop para mejor rendimiento
                 project_ids.append(get_project_data(project))
 
         except requests.exceptions.HTTPError as err:
@@ -294,7 +294,7 @@ def extract_historico(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
         project_name = row["name"][:40]
 
         _print_progress(i + 1, total_projects, f"Procesando: {project_name}")
-        logging.debug(f"Extrayendo histórico de {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         try:
             measures = sonar_handle.get_measures_history(project_key, index=1)
@@ -431,7 +431,7 @@ def _extract_historico_columnas_internal(
             f"Proyecto: {project_name} | Métricas: {acumulado}"
         )
 
-        logging.debug(f"Procesando proyecto {t + 1}/{tratados}: {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         while index * DEFAULT_PAGE_SIZE < total + DEFAULT_PAGE_SIZE:
             try:
@@ -442,10 +442,7 @@ def _extract_historico_columnas_internal(
                     measures = sonar_handle.get_measures_history(project_key, index)
 
                 if measures.status_code != 200:
-                    logging.warning(
-                        f"Error HTTP {measures.status_code} para {project_key}. "
-                        f"Saltando {DEFAULT_PAGE_SIZE} registros."
-                    )
+                    # Logging removido del loop - acumular errores para resumen final
                     index += 10
                     no_tratado += 1
                     break
@@ -454,13 +451,13 @@ def _extract_historico_columnas_internal(
                 total = datos_json["paging"]["total"]
 
                 if total == 0:
-                    logging.debug(f"El proyecto {project_key} no tiene métricas históricas")
+                    # Logging removido del loop para mejor rendimiento
                     no_tratado += 1
                     break
 
                 # Verificar que existan métricas
                 if not datos_json.get("measures") or len(datos_json["measures"]) == 0:
-                    logging.debug(f"No hay métricas en la respuesta para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     break
 
                 total_history = len(datos_json["measures"][0]["history"])
@@ -571,14 +568,14 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
         acumulado = 0
 
         _print_progress(idx + 1, tratados, f"Procesando: {project_name}")
-        logging.debug(f"Procesando métricas de {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         while index * DEFAULT_PAGE_SIZE < total + DEFAULT_PAGE_SIZE:
             try:
                 measures = sonar_handle.get_measures_history(project_key, index)
 
                 if measures.status_code != 200:
-                    logging.warning(f"Error HTTP {measures.status_code} para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     index += 10
                     no_tratado += 1
                     break
@@ -588,7 +585,7 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
                 total_history = len(datos_json["measures"][0]["history"])
                 acumulado += total_history
 
-                logging.debug(f"{project_key}: {total_history}/{total} histórico, acumulado: {acumulado}")
+                # Logging removido del loop para mejor rendimiento
 
                 # Solo procesar cuando tengamos todo el histórico
                 if total == acumulado and total > 0:
@@ -609,11 +606,11 @@ def extract_measure(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
                         except Exception:
                             dict_metrics[measure["metric"]] = ""
 
-                    logging.debug(f"Métricas extraídas para {project_key}")
+                    # Logging removido del loop para mejor rendimiento
                     project_ids.append(dict_metrics)
 
                 elif total <= 0:
-                    logging.debug(f"{project_key} no tiene métricas")
+                    # Logging removido del loop para mejor rendimiento
                     no_tratado += 1
 
                 index += 1
@@ -666,13 +663,13 @@ def extract_analisis(df_projects: pd.DataFrame, sonar_handle) -> pd.DataFrame:
         evaluados += 1
 
         _print_progress(evaluados, total_proyectos, f"Analizando: {project_name} | Versiones: {tratados}")
-        logging.debug(f"Procesando análisis {evaluados}/{total_proyectos}: {project_key}")
+        # Logging removido del loop para mejor rendimiento
 
         try:
             measures = sonar_handle.get_project_analyses(project_key)
 
             if measures.status_code != 200:
-                logging.warning(f"Error HTTP {measures.status_code} para {project_key}")
+                # Logging removido del loop para mejor rendimiento
                 continue
 
             datos_json = json.loads(measures.text)
